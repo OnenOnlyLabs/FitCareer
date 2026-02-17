@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitCareer — AI 맞춤 자소서 & 이력서</title>
+  <meta name="description" content="기업을 AI가 심층 분석하고, 당신의 프로필을 해당 기업에 최적화된 자기소개서와 이력서로 자동 생성합니다." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body class="font-[Inter] bg-[#F0F4F8] text-slate-900 antialiased min-h-screen">
+
+  <!-- ===== Top Bar ===== -->
+  <header class="flex items-center justify-between px-6 h-[56px] bg-white sticky top-0 z-50 max-w-[1400px] mx-auto"
+    style="box-shadow: var(--shadow-header);">
+    <div class="flex items-center gap-3">
+      <div class="logo-icon w-7 h-7 text-teal-600" id="logoIcon"></div>
+      <span
+        class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-teal-600 to-cyan-500 bg-clip-text text-transparent">FitCareer</span>
+    </div>
+    <div class="flex items-center gap-2.5">
+      <select id="providerSelect"
+        class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+        title="API 프로바이더">
+        <option value="openrouter">OpenRouter</option>
+        <option value="openai">OpenAI</option>
+      </select>
+      <select id="modelSelect"
+        class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+        title="AI 모델">
+        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+        <option value="openai/gpt-4o">GPT-4o</option>
+        <option value="openai/gpt-4.1-mini">GPT-4.1 Mini</option>
+        <option value="openai/gpt-4.1">GPT-4.1</option>
+        <option value="openai/o3-mini">o3-mini</option>
+        <option value="openai/gpt-4-turbo">GPT-4 Turbo</option>
+      </select>
+      <div class="flex items-center gap-1">
+        <input type="password" id="apiKeyInput"
+          class="h-8 w-64 px-3 text-xs font-mono border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
+          placeholder="sk-..." />
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+          id="toggleKeyVisibility" title="키 보기/숨기기"></button>
+      </div>
+      <label class="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer select-none">
+        <input type="checkbox" id="saveApiKey" checked class="accent-teal-600 w-3.5 h-3.5 rounded" />
+        <span>저장</span>
+      </label>
+    </div>
+  </header>
+
+  <!-- ===== Main Layout ===== -->
+  <main class="flex h-[calc(100vh-56px)] overflow-hidden max-w-[1400px] mx-auto">
+
+    <!-- ===== Left Panel — Input ===== -->
+    <aside class="panel-left w-[420px] min-w-[420px] overflow-y-auto p-5 bg-[#F0F4F8] flex flex-col gap-4">
+
+      <!-- Section: 기업 정보 -->
+      <section class="p-5 bg-white rounded-2xl flex flex-col gap-0"
+        style="box-shadow: var(--shadow-card); transition: box-shadow 0.3s ease;">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-2 h-2 rounded-full bg-teal-500 shrink-0"></div>
+          <h2 class="text-[13px] font-semibold text-slate-800">기업 정보</h2>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">기업명 <span
+                class="text-red-400">*</span></label>
+            <input type="text" id="companyName"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: 삼성전자" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">지원 직무 <span
+                class="text-red-400">*</span></label>
+            <input type="text" id="jobPosition"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: 백엔드 개발자, 마케팅, 경영지원" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">홈페이지 / SNS URL</label>
+            <input type="text" id="companyUrl"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="https://www.samsung.com" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">채용공고 URL <span
+                class="text-xs font-normal text-slate-400">(선택)</span></label>
+            <input type="text" id="jobPostingUrl"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="사람인, 잡코리아, 원티드 등" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">추가 정보 <span
+                class="text-xs font-normal text-slate-400">(선택)</span></label>
+            <textarea id="additionalInfo"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all resize-y placeholder:text-slate-400"
+              rows="2" placeholder="지원 직무, 기업 특이사항 등"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: 내 정보 -->
+      <section class="p-5 bg-white rounded-2xl"
+        style="box-shadow: var(--shadow-card); transition: box-shadow 0.3s ease;">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-2 h-2 rounded-full bg-cyan-500 shrink-0"></div>
+          <h2 class="text-[13px] font-semibold text-slate-800">내 정보</h2>
+          <button class="ml-auto text-xs font-semibold text-teal-600 hover:text-teal-800 transition-colors"
+            id="btnSaveProfile">프로필 저장</button>
+        </div>
+        <div class="space-y-4">
+          <!-- 증명사진 -->
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">증명사진 <span
+                class="text-xs font-normal text-slate-400">(이력서용)</span></label>
+            <div class="photo-upload cursor-pointer" id="photoUploadArea">
+              <input type="file" id="photoFileInput" accept="image/*" style="display:none" />
+              <div
+                class="photo-preview relative w-[100px] h-[120px] border-2 border-dashed border-slate-300 rounded-xl overflow-hidden flex items-center justify-center bg-[#F7F8FA] hover:border-teal-400 hover:bg-teal-50/30 transition-all"
+                id="photoPreview">
+                <div class="photo-placeholder flex flex-col items-center gap-1" id="photoPlaceholder">
+                  <div class="photo-icon w-6 h-6 text-slate-400" id="iconPhoto"></div>
+                  <span class="text-[10px] text-slate-400">사진 업로드</span>
+                </div>
+                <img class="photo-img absolute inset-0 w-full h-full object-cover" id="photoImg" style="display:none" />
+                <button
+                  class="photo-remove absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                  id="btnRemovePhoto" style="display:none">&times;</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">이름 <span
+                class="text-red-400">*</span></label>
+            <input type="text" id="userName"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: 홍길동" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">이메일</label>
+            <input type="email" id="userEmail"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: hong@email.com" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">연락처</label>
+            <input type="tel" id="userPhone"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: 010-1234-5678" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">주소</label>
+            <input type="text" id="userAddress"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+              placeholder="예: 서울특별시 강남구" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">학력</label>
+            <div id="educationList" class="experience-list space-y-2"></div>
+            <button class="mt-2 text-xs font-semibold text-teal-600 hover:text-teal-800 transition-colors"
+              id="btnAddEducation">+ 학력 추가</button>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">경력</label>
+            <div id="experienceList" class="experience-list space-y-2"></div>
+            <button class="mt-2 text-xs font-semibold text-teal-600 hover:text-teal-800 transition-colors"
+              id="btnAddExperience">+ 경력 추가</button>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">보유 스킬</label>
+            <div class="tags-input-wrap">
+              <div class="tags-display flex flex-wrap gap-1.5 mb-1.5" id="skillTags"></div>
+              <input type="text" id="skillInput"
+                class="w-full h-8 px-3 text-xs border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                placeholder="스킬 입력 후 Enter" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">자격증 / 수상</label>
+            <textarea id="certifications"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all resize-y placeholder:text-slate-400"
+              rows="2" placeholder="예: 정보처리기사, TOEIC 900"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">강점 / 자유 기술</label>
+            <textarea id="freeDescription"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all resize-y placeholder:text-slate-400"
+              rows="3" placeholder="성격, 강점, 프로젝트 경험, 활동 등 자유롭게 작성"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: 양식 설정 -->
+      <section class="p-5 bg-white rounded-2xl"
+        style="box-shadow: var(--shadow-card); transition: box-shadow 0.3s ease;">
+        <div class="flex items-center gap-2.5 mb-5">
+          <div class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></div>
+          <h2 class="text-[13px] font-semibold text-slate-800">양식 설정</h2>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-1.5">출력 형식</label>
+            <select id="outputFormat"
+              class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer">
+              <option value="standard">표준 자기소개서</option>
+              <option value="custom">기업 지정 양식</option>
+            </select>
+          </div>
+          <div id="customFormatGroup" style="display:none;" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">기업 지정 양식</label>
+              <div
+                class="format-upload-area border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 hover:bg-teal-50/20 transition-all cursor-pointer"
+                id="formatUploadArea">
+                <input type="file" id="formatFileInput" accept=".txt,.pdf,.png,.jpg,.jpeg,.webp,.hwp,.docx"
+                  style="display:none;" />
+                <div id="uploadPlaceholder">
+                  <div class="upload-icon w-8 h-8 mx-auto mb-2 text-slate-400" id="iconUpload"></div>
+                  <p class="text-xs text-slate-500 font-medium">파일을 드래그하거나 클릭하여 업로드</p>
+                  <p class="text-[10px] text-slate-400 mt-1">이미지(스크린샷), PDF, 텍스트 파일 지원</p>
+                </div>
+                <div id="uploadPreview" style="display:none;" class="flex items-center gap-2">
+                  <span class="text-sm" id="iconFilePreview"></span>
+                  <span class="text-xs font-medium text-slate-700 truncate" id="previewFileName"></span>
+                  <button class="ml-auto text-slate-400 hover:text-red-500 transition-colors text-sm"
+                    id="btnRemoveFile">&times;</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px bg-slate-200"></div>
+              <span class="text-[10px] text-slate-400 font-medium">또는 직접 입력</span>
+              <div class="flex-1 h-px bg-slate-200"></div>
+            </div>
+            <textarea id="customFormat"
+              class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all resize-y placeholder:text-slate-400"
+              rows="3" placeholder="예: 1. 지원동기 (800자 이내)&#10;2. 성장과정 (800자 이내)&#10;3. 입사 후 포부 (600자 이내)"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generate Button -->
+      <button
+        class="w-full h-12 rounded-2xl text-white font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
+        style="background: var(--accent-gradient); box-shadow: var(--shadow-btn);"
+        onmouseenter="this.style.boxShadow='var(--shadow-btn-hover)'"
+        onmouseleave="this.style.boxShadow='var(--shadow-btn)'" id="btnGenerate">
+        <span class="btn-generate-icon w-5 h-5" id="iconGenerate"></span>
+        <span class="btn-generate-text">맞춤 자소서 생성</span>
+        <span class="btn-generate-loading" style="display:none;">
+          <span
+            class="spinner w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
+          <span class="ml-2">AI 분석 중...</span>
+        </span>
+      </button>
+
+      <!-- Progress -->
+      <div class="progress-bar h-1.5 bg-slate-200 rounded-full overflow-hidden" id="progressBar" style="display:none;">
+        <div class="progress-fill h-full rounded-full transition-all duration-300"
+          style="background: var(--accent-gradient);" id="progressFill"></div>
+        <span class="progress-text text-[10px] text-slate-500 mt-1 block" id="progressText"></span>
+      </div>
+    </aside>
+
+    <!-- ===== Right Panel — Output ===== -->
+    <section class="panel-right flex-1 overflow-y-auto p-6 flex flex-col bg-[#F0F4F8]">
+
+      <!-- Tabs (Pill style) -->
+      <div class="tabs flex gap-2 mb-6 p-1 bg-white rounded-full w-fit" style="box-shadow: var(--shadow-card);">
+        <button class="tab-btn active flex items-center gap-1.5" data-tab="coverLetter">
+          <span class="tab-icon w-4 h-4" id="iconTabCover"></span>
+          자기소개서
+        </button>
+        <button class="tab-btn flex items-center gap-1.5" data-tab="resume">
+          <span class="tab-icon w-4 h-4" id="iconTabResume"></span>
+          이력서
+        </button>
+        <button class="tab-btn flex items-center gap-1.5" data-tab="interview">
+          <span class="tab-icon w-4 h-4" id="iconTabInterview"></span>
+          면접 예상질문
+        </button>
+      </div>
+
+      <!-- Tab: 자기소개서 -->
+      <div class="tab-pane active" id="tabCoverLetter">
+        <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="coverLetterEmpty">
+          <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty"></div>
+          <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
+          <p class="text-xs text-slate-400 mt-1">좌측에서 기업 정보와 내 정보를 입력한 후<br />생성 버튼을 클릭하세요</p>
+        </div>
+        <div class="output-content" id="coverLetterContent" style="display:none;">
+          <div class="bg-white rounded-2xl p-6" style="box-shadow: var(--shadow-card);">
+            <div class="output-header flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-slate-800" id="coverLetterTitle">자기소개서</h3>
+              <div class="output-actions flex items-center gap-2">
+                <button
+                  class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                  id="btnCopyCover">
+                  <span class="action-icon w-3.5 h-3.5" id="iconCopy1"></span>
+                  복사
+                </button>
+                <button
+                  class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                  id="btnDownloadCoverPdf">
+                  <span class="action-icon w-3.5 h-3.5" id="iconPdf1"></span>
+                  PDF
+                </button>
+              </div>
+            </div>
+            <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
+            <div class="output-body" id="coverLetterText" contenteditable="false"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: 이력서 -->
+      <div class="tab-pane" id="tabResume">
+        <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="resumeEmpty">
+          <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty2"></div>
+          <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
+          <p class="text-xs text-slate-400 mt-1">자소서 생성 시 이력서도 함께 생성됩니다</p>
+        </div>
+        <div class="output-content" id="resumeContent" style="display:none;">
+          <div class="output-header flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-800">이력서</h3>
+            <div class="output-actions flex items-center gap-2">
+              <select id="resumeTheme"
+                class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+                title="이력서 테마">
+                <option value="classic">클래식</option>
+                <option value="modern">모던</option>
+                <option value="simple">심플</option>
+              </select>
+              <select id="resumeColor"
+                class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+                title="모던 색상" style="display:none;">
+                <option value="#1565c0">블루</option>
+                <option value="#047857">에메랄드</option>
+                <option value="#7c3aed">퍼플</option>
+                <option value="#c62828">레드</option>
+                <option value="#1e3a5f">네이비</option>
+                <option value="#374151">차콜</option>
+              </select>
+              <div class="flex items-center gap-0.5 bg-slate-100 rounded-xl px-1 py-0.5 border border-slate-200/60">
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
+                  id="btnZoomOut" title="축소">−</button>
+                <span class="text-[11px] font-semibold text-slate-500 min-w-[36px] text-center select-none"
+                  id="zoomLevel">100%</span>
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
+                  id="btnZoomIn" title="확대">+</button>
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-[11px]"
+                  id="btnZoomReset" title="맞춤">⟲</button>
+              </div>
+              <button
+                class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                id="btnCopyResume">
+                <span class="action-icon w-3.5 h-3.5" id="iconCopy2"></span>
+                복사
+              </button>
+              <button
+                class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                id="btnDownloadResumePdf">
+                <span class="action-icon w-3.5 h-3.5" id="iconPdf2"></span>
+                PDF
+              </button>
+            </div>
+          </div>
+          <p class="edit-hint text-[10px] text-slate-400 mb-2">더블클릭하여 내용을 수정할 수 있습니다</p>
+          <div class="output-body" id="resumeText" contenteditable="false"></div>
+        </div>
+      </div>
+
+      <!-- Tab: 면접 예상질문 -->
+      <div class="tab-pane" id="tabInterview">
+        <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="interviewEmpty">
+          <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty3"></div>
+          <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
+          <p class="text-xs text-slate-400 mt-1">면접 예상질문과 모범답변도 함께 생성됩니다</p>
+        </div>
+        <div class="output-content" id="interviewContent" style="display:none;">
+          <div class="bg-white rounded-2xl p-6" style="box-shadow: var(--shadow-card);">
+            <div class="output-header flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-slate-800">면접 예상질문</h3>
+              <div class="output-actions flex items-center gap-2">
+                <button
+                  class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                  id="btnCopyInterview">
+                  <span class="action-icon w-3.5 h-3.5" id="iconCopy3"></span>
+                  복사
+                </button>
+              </div>
+            </div>
+            <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
+            <div class="output-body" id="interviewText" contenteditable="false"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div
+    class="toast fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-2xl shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-[1000]"
+    id="toast"></div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

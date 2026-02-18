@@ -247,16 +247,17 @@
 
       <!-- Generate Button -->
       <button
-        class="w-full h-14 rounded-2xl text-white font-bold text-base hover:brightness-110 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
-        style="background: var(--accent-gradient); box-shadow: var(--shadow-btn);"
-        onmouseenter="this.style.boxShadow='var(--shadow-btn-hover)'"
-        onmouseleave="this.style.boxShadow='var(--shadow-btn)'" id="btnGenerate">
-        <span class="btn-generate-icon w-5 h-5" id="iconGenerate"></span>
+        class="w-full rounded-2xl text-white font-extrabold hover:brightness-110 active:scale-[0.97] transition-all duration-300 flex items-center justify-center gap-3 cursor-pointer"
+        style="background: linear-gradient(135deg, #0d9488 0%, #14b8a6 40%, #2dd4bf 100%); box-shadow: 0 4px 20px rgba(13,148,136,0.35), 0 0 0 0 rgba(13,148,136,0); height: 72px; font-size: 18px; letter-spacing: 0.5px;"
+        onmouseenter="this.style.boxShadow='0 6px 30px rgba(13,148,136,0.5), 0 0 20px rgba(45,212,191,0.2)'"
+        onmouseleave="this.style.boxShadow='0 4px 20px rgba(13,148,136,0.35), 0 0 0 0 rgba(13,148,136,0)'"
+        id="btnGenerate">
+        <span class="btn-generate-icon" style="font-size:22px;" id="iconGenerate">✨</span>
         <span class="btn-generate-text">맞춤 자소서 생성</span>
         <span class="btn-generate-loading" style="display:none;">
           <span
-            class="spinner w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
-          <span class="ml-2">AI 분석 중...</span>
+            class="spinner w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block"></span>
+          <span class="ml-2" style="font-size:16px;">AI 분석 중...</span>
         </span>
       </button>
 

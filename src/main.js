@@ -533,7 +533,120 @@ $('#btnDownloadResumePdf').addEventListener('click', () => {
     downloadPdf('resumeText', 'FitCareer-이력서');
 });
 
-// ===== File Upload for Custom Format =====
+// ===== Multi-Content Print/PDF =====
+$('#btnMultiPrint').addEventListener('click', () => {
+    $('#multiPrintModal').style.display = 'block';
+});
+$('#btnMultiPrintCancel').addEventListener('click', () => {
+    $('#multiPrintModal').style.display = 'none';
+});
+$('#multiPrintModal').addEventListener('click', (e) => {
+    if (e.target === $('#multiPrintModal')) {
+        $('#multiPrintModal').style.display = 'none';
+    }
+});
+$('#btnMultiPrintConfirm').addEventListener('click', () => {
+    const includeCover = $('#printCoverLetter').checked;
+    const includeResume = $('#printResume').checked;
+    const includeInterview = $('#printInterview').checked;
+
+    if (!includeCover && !includeResume && !includeInterview) {
+        showToast('최소 하나 이상 선택해주세요');
+        return;
+    }
+
+    downloadMultiPdf({ includeCover, includeResume, includeInterview });
+    $('#multiPrintModal').style.display = 'none';
+});
+
+function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
+    const sections = [];
+
+    if (includeCover) {
+        const el = $('#coverLetterText');
+        if (el && el.textContent.trim()) {
+            sections.push({ title: '자기소개서', content: el.innerHTML, type: 'text' });
+        }
+    }
+
+    if (includeResume) {
+        const el = $('#resumeText');
+        if (el && el.textContent.trim()) {
+            let content = el.innerHTML;
+            const temp = document.createElement('div');
+            temp.innerHTML = content;
+            const page = temp.querySelector('.resume-a4-page');
+            if (page) {
+                page.style.transform = 'none';
+                page.style.width = '210mm';
+                page.style.height = '297mm';
+                page.style.boxShadow = 'none';
+                content = page.outerHTML;
+            }
+            sections.push({ title: '이력서', content, type: 'resume' });
+        }
+    }
+
+    if (includeInterview) {
+        const el = $('#interviewText');
+        if (el && el.textContent.trim()) {
+            sections.push({ title: '면접 예상질문', content: el.innerHTML, type: 'text' });
+        }
+    }
+
+    if (sections.length === 0) {
+        showToast('출력할 내용이 없습니다. 먼저 생성해주세요.');
+        return;
+    }
+
+    const combinedContent = sections.map((sec, i) => {
+        const pageBreak = i < sections.length - 1 ? 'page-break-after: always;' : '';
+        const isResume = sec.type === 'resume';
+        const title = !isResume ? `<h2 style="font-size:18px; font-weight:700; color:#115E59; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #14B8A6;">${sec.title}</h2>` : '';
+        const padding = isResume ? 'padding:0;' : 'padding:30px;';
+        return `<div style="${pageBreak} ${padding}">${title}${sec.content}</div>`;
+    }).join('');
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html>
+<html><head>
+<title>FitCareer - 통합 출력</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 15mm; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Noto Sans KR', 'Inter', sans-serif;
+    margin: 0; color: #1A1D26; line-height: 1.85; font-size: 14px;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+}
+.resume-a4-page {
+    width: 210mm; height: 297mm; box-shadow: none; overflow: hidden;
+    print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+}
+.resume-a4-page table { border-collapse: collapse; width: 100%; }
+.resume-a4-page th, .resume-a4-page td {
+    border: 1px solid #333 !important; border-style: solid !important;
+    padding: 6px 10px; font-size: 12px; vertical-align: middle; line-height: 1.5;
+}
+.resume-a4-page th {
+    font-weight: 700 !important; text-align: center;
+    print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+}
+.resume-a4-page ul { list-style: disc; padding-left: 18px; margin: 0; }
+.resume-a4-page h1, .resume-a4-page h2, .resume-a4-page h3, .resume-a4-page p { margin: 0; padding: 0; }
+[style*="background"] {
+    print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+}
+.qa-block { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+.qa-question { font-weight: 700; color: #115E59; margin-bottom: 4px; font-size: 13px; }
+.qa-answer { color: #374151; font-size: 12px; }
+</style>
+</head><body>${combinedContent}</body></html>`);
+    printWindow.document.close();
+    setTimeout(() => { printWindow.print(); }, 500);
+}
 const uploadArea = $('#formatUploadArea');
 const fileInput = $('#formatFileInput');
 

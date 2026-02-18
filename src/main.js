@@ -526,12 +526,6 @@ $('#btnCopyInterview').addEventListener('click', () => {
     const text = $('#interviewText').innerText;
     if (text) copyToClipboard(text);
 });
-$('#btnDownloadCoverPdf').addEventListener('click', () => {
-    downloadPdf('coverLetterText', 'FitCareer-자기소개서');
-});
-$('#btnDownloadResumePdf').addEventListener('click', () => {
-    downloadPdf('resumeText', 'FitCareer-이력서');
-});
 
 // ===== Multi-Content Print/PDF =====
 $('#btnMultiPrint').addEventListener('click', () => {
@@ -565,7 +559,10 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
     if (includeCover) {
         const el = $('#coverLetterText');
         if (el && el.textContent.trim()) {
-            sections.push({ title: '자기소개서', content: el.innerHTML, type: 'text' });
+            // Get the full styled cover letter container (card with shadow)
+            const container = el.closest('.bg-white');
+            const content = container ? container.innerHTML : el.innerHTML;
+            sections.push({ title: '자기소개서', content, type: 'coverLetter' });
         }
     }
 
@@ -579,8 +576,10 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
             if (page) {
                 page.style.transform = 'none';
                 page.style.width = '210mm';
-                page.style.height = '297mm';
+                page.style.minHeight = '297mm';
                 page.style.boxShadow = 'none';
+                page.style.margin = '0';
+                page.style.padding = page.style.padding || '20px 25px';
                 content = page.outerHTML;
             }
             sections.push({ title: '이력서', content, type: 'resume' });
@@ -590,7 +589,7 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
     if (includeInterview) {
         const el = $('#interviewText');
         if (el && el.textContent.trim()) {
-            sections.push({ title: '면접 예상질문', content: el.innerHTML, type: 'text' });
+            sections.push({ title: '면접 예상질문', content: el.innerHTML, type: 'interview' });
         }
     }
 
@@ -601,28 +600,48 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
 
     const combinedContent = sections.map((sec, i) => {
         const pageBreak = i < sections.length - 1 ? 'page-break-after: always;' : '';
-        const isResume = sec.type === 'resume';
-        const title = !isResume ? `<h2 style="font-size:18px; font-weight:700; color:#115E59; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid #14B8A6;">${sec.title}</h2>` : '';
-        const padding = isResume ? 'padding:0;' : 'padding:30px;';
-        return `<div style="${pageBreak} ${padding}">${title}${sec.content}</div>`;
+        if (sec.type === 'resume') {
+            return `<div style="${pageBreak} padding:0;">${sec.content}</div>`;
+        } else if (sec.type === 'coverLetter') {
+            return `<div style="${pageBreak} padding:20mm;">
+                <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
+                    <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
+                </div>
+                <div id="coverLetterText" style="font-size:14px; line-height:1.85; color:#1A1D26;">
+                    ${$('#coverLetterText').innerHTML}
+                </div>
+            </div>`;
+        } else {
+            return `<div style="${pageBreak} padding:20mm;">
+                <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
+                    <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
+                </div>
+                ${sec.content}
+            </div>`;
+        }
     }).join('');
 
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`<!DOCTYPE html>
 <html><head>
-<title>FitCareer - 통합 출력</title>
+<title>FitCareer</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-@page { size: A4; margin: 15mm; }
+@page { size: A4; margin: 0; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'Noto Sans KR', 'Inter', sans-serif;
-    margin: 0; color: #1A1D26; line-height: 1.85; font-size: 14px;
+    margin: 0; color: #1A1D26;
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
 }
+/* Cover letter section styling */
+.cl-section { font-weight: 700; color: #115E59; font-size: 15px; margin: 20px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; }
+/* Resume A4 page */
 .resume-a4-page {
-    width: 210mm; height: 297mm; box-shadow: none; overflow: hidden;
+    width: 210mm !important; min-height: 297mm !important; height: auto;
+    box-shadow: none !important; overflow: visible;
+    transform: none !important; margin: 0 !important;
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
@@ -639,9 +658,12 @@ body {
 [style*="background"] {
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
 }
-.qa-block { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
-.qa-question { font-weight: 700; color: #115E59; margin-bottom: 4px; font-size: 13px; }
-.qa-answer { color: #374151; font-size: 12px; }
+/* Interview Q&A */
+.qa-block { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB; }
+.qa-question { font-weight: 700; color: #115E59; margin-bottom: 6px; font-size: 14px; }
+.qa-answer { color: #374151; font-size: 13px; line-height: 1.7; }
+/* Output header — hide in print */
+.output-header, .output-actions, .edit-hint, .btn-action { display: none !important; }
 </style>
 </head><body>${combinedContent}</body></html>`);
     printWindow.document.close();

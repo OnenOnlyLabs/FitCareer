@@ -290,6 +290,8 @@ app.post('/api/generate', async (req, res) => {
         const crawlData = await deepCrawl(company.url, company.jobPostingUrl);
 
         let webContent = '';
+        let crawlQualityLow = true; // assume low quality until proven otherwise
+
         if (crawlData.mainPage) {
             webContent += `\n=== 홈페이지 메인 ===\n${crawlData.mainPage}\n`;
         }
@@ -307,11 +309,49 @@ app.post('/api/generate', async (req, res) => {
             webContent += `\n=== 채용공고 상세 ===\n${crawlData.jobPosting}\n`;
         }
 
-        const analysisPrompt = `당신은 기업 분석 전문가입니다.
+        // Check crawl quality — JS-rendered SPAs return mostly gibberish
+        if (webContent.length > 0) {
+            // Count meaningful Korean characters + words (not JS noise)
+            const koreanChars = (webContent.match(/[가-힣]/g) || []).length;
+            const jsNoise = (webContent.match(/function|var |const |let |=\s*>|React|angular|vue|webpack|__/gi) || []).length;
+            crawlQualityLow = koreanChars < 100 && webContent.length < 500 || jsNoise > 10;
+            console.log(`[CrawlQuality] Korean: ${koreanChars}, JSNoise: ${jsNoise}, Low: ${crawlQualityLow}`);
+        }
+
+        let analysisPrompt;
+        if (crawlQualityLow) {
+            analysisPrompt = `당신은 기업 분석 전문가입니다.
+
+${companyDesc}
+
+⚠️ 중요: 이 기업의 홈페이지 크롤링에 실패했거나 충분한 데이터를 수집하지 못했습니다.
+따라서 아래 규칙을 반드시 따르세요:
+
+=== 절대 규칙 ===
+1. 확인되지 않은 제품명, 서비스명, 브랜드명을 절대 만들어내지 마세요
+2. 기업의 실제 제품/서비스를 모르면 "구체적 제품/서비스 정보 확인 필요"라고 쓰세요
+3. 기업명과 사용자가 입력한 추가 정보만으로 분석하세요
+4. 추측으로 구체적 정보(제품명, 매출, 직원 수 등)를 만들어내면 절대 안됩니다
+5. 모르는 항목은 반드시 "확인 필요"로 표시하세요
+
+다음 항목을 분석해주세요 (아는 정보만):
+1. 기업 개요 — 확인된 정보만
+2. 핵심 가치 / 비전 / 미션 — 확인 가능한 정보만
+3. 인재상 — 확인 가능한 정보만
+4. 기업 문화 — 확인 가능한 정보만
+5. 최근 이슈 — 확인 가능한 정보만
+6. 주요 제품 / 서비스 — 확인된 것만 (모르면 "확인 필요")
+7. 경쟁사 대비 차별화 — 확인 가능한 정보만
+8. 채용 요구 역량 — 확인 가능한 정보만
+9. 직무 업무 내용 — 확인 가능한 정보만
+
+JSON 형식이 아닌 자연어로 작성해주세요.`;
+        } else {
+            analysisPrompt = `당신은 기업 분석 전문가입니다.
 아래 기업에 대해 깊이 있게 분석해주세요.
 
 ${companyDesc}
-${webContent ? webContent : '(홈페이지 크롤링 데이터 없음)'}
+${webContent}
 
 다음 항목을 최대한 구체적으로 분석해주세요:
 1. 기업 개요 (업종, 규모, 설립연도, 주요 사업 영역)
@@ -324,12 +364,18 @@ ${webContent ? webContent : '(홈페이지 크롤링 데이터 없음)'}
 8. 채용 공고에서 요구하는 핵심 역량/자격요건
 9. 해당 직무에서 실제 수행하는 업무 내용
 
-중요: 크롤링된 데이터에서 확인된 실제 정보만 사용하세요.
+⚠️ 반드시 크롤링된 데이터에서 확인된 실제 정보만 사용하세요.
+⚠️ 크롤링 데이터에 없는 구체적 제품명/서비스명을 만들어내지 마세요.
 확인되지 않은 정보는 "확인 필요"라고 표시하세요.
 JSON 형식이 아닌 자연어로 작성해주세요.`;
+        }
+
+        const analysisSystemMsg = crawlQualityLow
+            ? '기업 분석 전문가입니다. 홈페이지 크롤링 데이터가 부족할 때는 절대 추측하지 않으며, 확인된 정보만 제공합니다. 존재하지 않는 제품명이나 서비스명을 만들어내는 것은 가장 큰 실수입니다.'
+            : '기업 분석 전문가입니다. 크롤링된 실제 데이터를 기반으로 구체적이고 정확한 분석을 제공합니다. 크롤링 데이터에 없는 구체적 제품명을 만들어내지 않습니다.';
 
         const companyAnalysis = await callAI(
-            [{ role: 'system', content: '기업 분석 전문가입니다. 크롤링된 실제 데이터를 기반으로 구체적이고 정확한 분석을 제공합니다. 추측이나 일반적 내용이 아닌, 해당 기업만의 고유한 특징을 중심으로 분석합니다.' },
+            [{ role: 'system', content: analysisSystemMsg },
             { role: 'user', content: analysisPrompt }],
             apiKey, provider, model, 3000
         );
@@ -348,10 +394,10 @@ JSON 형식이 아닌 자연어로 작성해주세요.`;
 
 === 기업 맞춤 규칙 ===
 1. 반드시 "${company.name}"의 "${jobPos}" 직무에 맞춰 작성
-2. 기업 분석에서 나온 구체적 제품명/서비스명/사업 영역을 지원동기에 직접 언급
+2. ${crawlQualityLow ? '기업 분석에서 "확인 필요"로 표시된 제품/서비스명은 절대 자소서에 사용하지 마세요. 기업의 일반적 방향성만 언급하세요.' : '기업 분석에서 나온 구체적 제품명/서비스명/사업 영역을 지원동기에 직접 언급'}
 3. 기업의 인재상과 지원자의 실제 역량 사이의 교차점을 찾아 강조
 4. "귀사"가 아닌 "${company.name}"으로 기업명을 직접 사용
-5. 기업의 최근 이슈나 성장 방향과 연결하여 지원동기를 구체화
+5. ${crawlQualityLow ? '기업에 대해 모르는 정보는 추측하지 말고, 지원자의 경험과 역량 중심으로 작성' : '기업의 최근 이슈나 성장 방향과 연결하여 지원동기를 구체화'}
 
 === 문체 규칙 ===
 1. 진정성 있고 자연스러운 한국어 (과도한 미사여구 금지)

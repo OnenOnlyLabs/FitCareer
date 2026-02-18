@@ -386,6 +386,12 @@
     }
 }
 
+/* --- Generate Button --- */
+#btnGenerate {
+    height: 72px !important;
+    min-height: 72px !important;
+}
+
 /* --- Responsive --- */
 @media (max-width: 960px) {
     main {

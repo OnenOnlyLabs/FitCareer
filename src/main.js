@@ -1046,7 +1046,7 @@ function renderResume(data, theme = 'classic', photo = null) {
 
         html = `<div class="resume-a4-wrap">
 <div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
-<div class="resume-a4-inner" style="display:flex;width:100%;height:100%;">
+<div class="resume-a4-inner" style="display:flex;flex-direction:row;width:100%;height:100%;">
     <!-- Sidebar -->
     <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:hidden;">
         <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>

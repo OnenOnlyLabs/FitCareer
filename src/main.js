@@ -715,7 +715,9 @@ function formatCoverLetter(text) {
 }
 
 // ===== Photo Upload =====
-$('#photoUploadArea').addEventListener('click', () => {
+$('#photoUploadArea').addEventListener('click', (e) => {
+    // Prevent re-triggering when clicking the input itself or the remove button
+    if (e.target.id === 'photoFileInput' || e.target.id === 'btnRemovePhoto') return;
     $('#photoFileInput').click();
 });
 
@@ -1022,85 +1024,84 @@ function renderResume(data, theme = 'classic', photo = null) {
 </div>`;
 
     } else if (theme === 'modern') {
-        // ━━━━ MODERN: Sidebar — compact spacing ━━━━
+        // ━━━━ MODERN: Sidebar — A4 fixed height, content stays within bounds ━━━━
         const accent = $('#resumeColor')?.value || '#1565c0';
 
         const eduHtml = eduList.length > 0
-            ? eduList.map(e => `<div style="margin-bottom:1px;"><span style="font-size:10px;font-weight:600;">${e.school || ''}</span> · <span style="font-size:9.5px;opacity:0.75;">${e.major || ''}</span><br><span style="font-size:9px;opacity:0.5;">${e.period || ''}</span></div>`).join('')
+            ? eduList.map(e => `<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:600;">${e.school || ''}</span><br><span style="font-size:10px;opacity:0.8;">${e.major || ''}</span><br><span style="font-size:9.5px;opacity:0.55;">${e.period || ''}</span></div>`).join('')
             : '<div style="font-size:10px;opacity:0.5;">-</div>';
         const expHtml = expList.length > 0
-            ? expList.map(e => `<div style="margin-bottom:3px;"><strong style="font-size:12px;">${e.company || ''}</strong> <span style="font-size:11px;color:#555;">· ${e.role || ''}</span><br><span style="color:#888;font-size:10px;">${e.period || ''}</span></div>`).join('')
+            ? expList.map(e => `<div style="margin-bottom:8px;"><strong style="font-size:12.5px;">${e.company || ''}</strong><br><span style="font-size:11px;color:#555;">${e.role || ''}</span><br><span style="color:#888;font-size:10.5px;">${e.period || ''}</span></div>`).join('')
             : '<div style="color:#aaa;font-size:12px;">-</div>';
 
-        // Sidebar section helper — tight spacing
-        const sideSection = (label, content) => `<div style="margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,0.12);">
-            <div style="font-size:7px;font-weight:700;letter-spacing:1.5px;margin-bottom:1px;opacity:0.4;">${label}</div>
+        const sideSection = (label, content) => `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.15);">
+            <div style="font-size:8px;font-weight:700;letter-spacing:2px;margin-bottom:6px;opacity:0.5;text-transform:uppercase;">${label}</div>
             ${content}
         </div>`;
 
+        const mainSection = (title, content) => `<div style="flex:1;min-height:0;">
+            <div style="font-size:12.5px;font-weight:700;color:${accent};border-bottom:2px solid ${accent};padding-bottom:4px;margin-bottom:8px;">${title}</div>
+            <div style="font-size:11.5px;line-height:1.7;">${content}</div>
+        </div>`;
+
         html = `<div class="resume-a4-wrap">
-<div class="resume-a4-page" style="padding:0;box-sizing:border-box;display:flex;overflow:hidden;">
+<div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
+<div class="resume-a4-inner" style="display:flex;width:100%;height:100%;">
     <!-- Sidebar -->
-    <div style="width:200px;min-width:200px;background:${accent};color:#fff;padding:14px 12px 10px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;">
-        <div style="text-align:center;margin-bottom:4px;">${photo ? `<img src="${photo}" style="width:85px;height:110px;object-fit:cover;border:2px solid rgba(255,255,255,0.3);border-radius:4px;" />` : `<div style="width:85px;height:110px;border:2px dashed rgba(255,255,255,0.2);border-radius:4px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:10px;">사진</div>`}</div>
-        <div style="font-size:14px;font-weight:800;text-align:center;margin:0 0 0 0;color:#fff;">${d.name || ''}</div>
-        <div style="text-align:center;font-size:9px;opacity:0.7;margin-bottom:4px;">${d.jobPosition || ''}</div>
+    <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:hidden;">
+        <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>
+        <div style="font-size:18px;font-weight:800;text-align:center;margin:0 0 2px 0;color:#fff;">${d.name || ''}</div>
+        <div style="text-align:center;font-size:10px;opacity:0.7;margin-bottom:6px;">${d.jobPosition || ''}</div>
         ${sideSection('CONTACT', `
-            ${contact.email ? `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">✉ ${contact.email}</div>` : ''}
-            ${contact.phone ? `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">☎ ${contact.phone}</div>` : ''}
-            ${contact.address ? `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">◎ ${contact.address}</div>` : ''}
+            ${contact.email ? `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">✉ ${contact.email}</div>` : ''}
+            ${contact.phone ? `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">☎ ${contact.phone}</div>` : ''}
+            ${contact.address ? `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">◎ ${contact.address}</div>` : ''}
         `)}
         ${sideSection('학력사항', eduHtml)}
-        ${hasSkills ? sideSection('SKILLS', d.skills.map(s => `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">▸ ${s}</div>`).join('')) : ''}
-        ${hasCerts ? sideSection('자격/면허', d.certifications.filter(c => c).map(c => `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">▸ ${c}</div>`).join('')) : ''}
-        ${hasStrengths ? sideSection('특기사항', d.strengths.filter(s => s).map(s => `<div style="font-size:9px;margin:0;padding:0;line-height:1.15;">▸ ${s}</div>`).join('')) : ''}
+        ${hasSkills ? sideSection('SKILLS', d.skills.map(s => `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">▸ ${s}</div>`).join('')) : ''}
+        ${hasCerts ? sideSection('자격/면허', d.certifications.filter(c => c).map(c => `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">▸ ${c}</div>`).join('')) : ''}
+        ${hasStrengths ? sideSection('특기사항', d.strengths.filter(s => s).map(s => `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">▸ ${s}</div>`).join('')) : ''}
         <div style="flex:1;"></div>
     </div>
     <!-- Main Content -->
-    <div style="flex:1;padding:20px 18px;display:flex;flex-direction:column;">
-        <div style="margin-bottom:10px;">
-            <div style="font-size:12px;font-weight:700;color:${accent};border-bottom:2px solid ${accent};padding-bottom:2px;margin-bottom:5px;">경력사항</div>
-            ${expHtml}
-        </div>
-        ${hasExp ? `<div style="margin-bottom:10px;">
-            <div style="font-size:12px;font-weight:700;color:${accent};border-bottom:2px solid ${accent};padding-bottom:2px;margin-bottom:5px;">경력상세</div>
-            <div style="font-size:11.5px;line-height:1.6;">${expDetailHtml}</div>
-        </div>` : ''}
-        ${d.summary ? `<div style="margin-bottom:10px;">
-            <div style="font-size:12px;font-weight:700;color:${accent};border-bottom:2px solid ${accent};padding-bottom:2px;margin-bottom:5px;">자기소개</div>
-            <div style="font-size:11.5px;line-height:1.6;">${d.summary}</div>
-        </div>` : ''}
-        <div style="flex:1;"></div>
+    <div style="flex:1;padding:28px 24px;display:flex;flex-direction:column;gap:0;overflow:hidden;">
+        ${mainSection('경력사항', expHtml)}
+        ${hasExp ? mainSection('경력상세', expDetailHtml) : ''}
+        ${d.summary ? mainSection('자기소개', d.summary) : ''}
+        ${hasStrengths ? mainSection('특기사항', strengthsHtml) : ''}
     </div>
+</div>
 </div>
 </div>`;
 
     } else {
-        // ━━━━ SIMPLE: Minimal — ALL content included ━━━━
+        // ━━━━ SIMPLE: Minimal — A4 fixed height, even content distribution ━━━━
         const eduHtml = eduList.length > 0
-            ? eduList.map(e => `<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;">${e.school || ''} · ${e.major || ''}</span><span style="color:#888;font-size:11px;">${e.period || ''}</span></div>`).join('')
+            ? eduList.map(e => `<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12.5px;">${e.school || ''} · ${e.major || ''}</span><span style="color:#888;font-size:11px;">${e.period || ''}</span></div>`).join('')
             : '<div style="color:#aaa;font-size:12px;">-</div>';
         const expHtml = expList.length > 0
-            ? expList.map(e => `<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;">${e.company || ''} · ${e.role || ''}</span><span style="color:#888;font-size:11px;">${e.period || ''}</span></div>`).join('')
+            ? expList.map(e => `<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12.5px;">${e.company || ''} · ${e.role || ''}</span><span style="color:#888;font-size:11px;">${e.period || ''}</span></div>`).join('')
             : '<div style="color:#aaa;font-size:12px;">-</div>';
 
-        const sectionTitle = (title) => `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:#333;margin-bottom:8px;border-bottom:1px solid #ddd;padding-bottom:4px;">${title}</div>`;
+        const sectionTitle = (title) => `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:#333;margin-bottom:10px;border-bottom:1px solid #ddd;padding-bottom:6px;">${title}</div>`;
 
         html = `<div class="resume-a4-wrap">
-<div class="resume-a4-page" style="padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;">
-    <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:14px;margin-bottom:18px;">
-        ${photo ? `<div style="margin-bottom:8px;"><img src="${photo}" style="width:90px;height:110px;object-fit:cover;border:1px solid #ddd;" /></div>` : ''}
-        <h1 style="font-size:24px;font-weight:800;margin:0 0 3px 0;color:#111;letter-spacing:3px;">${d.name || ''}</h1>
-        <div style="font-size:12px;color:#555;margin-bottom:3px;">${d.jobPosition || ''}</div>
+<div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
+<div class="resume-a4-inner" style="display:flex;flex-direction:column;height:100%;padding:36px 40px;box-sizing:border-box;">
+    <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:18px;margin-bottom:0;">
+        ${photo ? `<div style="margin-bottom:10px;"><img src="${photo}" style="width:90px;height:115px;object-fit:cover;border:1px solid #ddd;" /></div>` : ''}
+        <h1 style="font-size:26px;font-weight:800;margin:0 0 4px 0;color:#111;letter-spacing:4px;">${d.name || ''}</h1>
+        <div style="font-size:12.5px;color:#555;margin-bottom:4px;">${d.jobPosition || ''}</div>
         <div style="font-size:11px;color:#888;">${[contact.email, contact.phone, contact.address].filter(Boolean).join(' ∣ ')}</div>
     </div>
-    <div style="margin-bottom:14px;">${sectionTitle('학력사항')}${eduHtml}</div>
-    <div style="margin-bottom:14px;">${sectionTitle('경력사항')}${expHtml}</div>
-    <div style="margin-bottom:14px;">${sectionTitle('보유스킬')}<div style="font-size:12px;">${skillText}</div></div>
-    <div style="margin-bottom:14px;">${sectionTitle('자격/면허')}<div style="font-size:12px;">${certText}</div></div>
-    ${hasExp ? `<div style="margin-bottom:14px;">${sectionTitle('경력상세')}<div style="font-size:12px;line-height:1.7;">${expDetailHtml}</div></div>` : ''}
-    ${d.summary ? `<div style="margin-bottom:14px;">${sectionTitle('자기소개')}<div style="font-size:12px;line-height:1.7;">${d.summary}</div></div>` : ''}
-    <div style="flex:1;">${sectionTitle('특기사항')}<div style="font-size:12px;line-height:1.7;">${strengthsHtml}</div></div>
+    <div style="flex:1;padding-top:16px;min-height:0;">${sectionTitle('학력사항')}${eduHtml}</div>
+    <div style="flex:1;min-height:0;">${sectionTitle('경력사항')}${expHtml}</div>
+    <div style="flex:1;min-height:0;">${sectionTitle('보유스킬')}<div style="font-size:12.5px;line-height:1.7;">${skillText}</div></div>
+    <div style="flex:1;min-height:0;">${sectionTitle('자격/면허')}<div style="font-size:12.5px;line-height:1.7;">${certText}</div></div>
+    ${hasExp ? `<div style="flex:1;min-height:0;">${sectionTitle('경력상세')}<div style="font-size:12.5px;line-height:1.7;">${expDetailHtml}</div></div>` : ''}
+    ${d.summary ? `<div style="flex:1;min-height:0;">${sectionTitle('자기소개')}<div style="font-size:12.5px;line-height:1.7;">${d.summary}</div></div>` : ''}
+    <div style="flex:1;min-height:0;">${sectionTitle('특기사항')}<div style="font-size:12.5px;line-height:1.7;">${strengthsHtml}</div></div>
+</div>
 </div>
 </div>`;
     }
@@ -1122,25 +1123,15 @@ function autoFitA4Content() {
     const inner = document.querySelector('.resume-a4-inner');
     if (!page || !inner) return;
 
-    // Reset any previous scaling to measure natural height
-    inner.style.transform = 'none';
-    inner.style.height = 'auto';
-
     const pageH = 1123; // A4 height in px
-    const contentH = inner.scrollHeight;
+    const pageW = 794;  // A4 width in px
 
-    if (contentH > pageH) {
-        // Content overflows — scale down to fit
-        const scale = pageH / contentH;
-        inner.style.transform = `scale(${scale})`;
-        inner.style.height = `${pageH}px`;
-        inner.style.width = `${794 / scale}px`;
-    } else {
-        // Content fits — stretch to fill full A4 via flex
-        inner.style.transform = 'none';
-        inner.style.height = `${pageH}px`;
-        inner.style.width = '794px';
-    }
+    // For Modern/Simple themes that use fixed A4 dimensions,
+    // just ensure the page is properly sized and let CSS flex handle distribution
+    page.style.width = `${pageW}px`;
+    page.style.height = `${pageH}px`;
+    inner.style.height = '100%';
+    inner.style.transform = 'none';
 }
 
 // ===== Scale A4 page to fit preview panel =====

@@ -173,23 +173,203 @@ const PRIORITY_KEYWORDS = [
     '연혁', 'history', '비전', 'vision', 'mission'
 ];
 
-async function deepCrawl(mainUrl, jobPostingUrl) {
-    const result = { mainPage: '', subPages: [], jobPosting: '' };
+// --- Strategy 1: Extract Meta/OG Tags (works even on JS-rendered SPAs) ---
+function extractMetaTags(html) {
+    const meta = {};
+    const patterns = [
+        { key: 'title', regex: /<title[^>]*>([^<]+)<\/title>/i },
+        { key: 'description', regex: /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i },
+        { key: 'keywords', regex: /<meta[^>]*name=["']keywords["'][^>]*content=["']([^"']+)["']/i },
+        { key: 'og_title', regex: /<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i },
+        { key: 'og_description', regex: /<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i },
+        { key: 'og_site_name', regex: /<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']+)["']/i },
+        { key: 'og_type', regex: /<meta[^>]*property=["']og:type["'][^>]*content=["']([^"']+)["']/i },
+        // Also try reverse attribute order (content before name/property)
+        { key: 'description', regex: /<meta[^>]*content=["']([^"']+)["'][^>]*name=["']description["']/i },
+        { key: 'og_title', regex: /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:title["']/i },
+        { key: 'og_description', regex: /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:description["']/i },
+    ];
+
+    for (const { key, regex } of patterns) {
+        const match = html.match(regex);
+        if (match && match[1] && !meta[key]) {
+            meta[key] = match[1].trim();
+        }
+    }
+
+    // Extract JSON-LD structured data (SEO schema)
+    const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+    const jsonLdBlocks = [];
+    let ldMatch;
+    while ((ldMatch = jsonLdRegex.exec(html)) !== null) {
+        try {
+            const parsed = JSON.parse(ldMatch[1]);
+            // Extract useful fields from schema.org data
+            const useful = {};
+            if (parsed.name) useful.name = parsed.name;
+            if (parsed.description) useful.description = parsed.description;
+            if (parsed.url) useful.url = parsed.url;
+            if (parsed.address) useful.address = JSON.stringify(parsed.address);
+            if (parsed.founder) useful.founder = JSON.stringify(parsed.founder);
+            if (parsed.foundingDate) useful.foundingDate = parsed.foundingDate;
+            if (parsed.numberOfEmployees) useful.employees = JSON.stringify(parsed.numberOfEmployees);
+            if (parsed.sameAs) useful.socialLinks = Array.isArray(parsed.sameAs) ? parsed.sameAs.join(', ') : parsed.sameAs;
+            if (parsed['@type']) useful.type = parsed['@type'];
+            if (Object.keys(useful).length > 0) {
+                jsonLdBlocks.push(useful);
+            }
+        } catch { /* skip invalid JSON-LD */ }
+    }
+    if (jsonLdBlocks.length > 0) {
+        meta.jsonLd = jsonLdBlocks;
+    }
+
+    return meta;
+}
+
+// --- Strategy 2: Sitemap.xml parsing for URL discovery ---
+async function crawlSitemap(baseUrl) {
+    const urls = [];
+    try {
+        const base = new URL(baseUrl);
+        const sitemapUrl = `${base.origin}/sitemap.xml`;
+        const html = await fetchPage(sitemapUrl, 5000);
+        if (!html || !html.includes('<urlset') && !html.includes('<sitemapindex')) return urls;
+
+        const locRegex = /<loc>([^<]+)<\/loc>/gi;
+        let match;
+        while ((match = locRegex.exec(html)) !== null) {
+            urls.push(match[1].trim());
+        }
+        console.log(`[Sitemap] Found ${urls.length} URLs from sitemap.xml`);
+    } catch (e) {
+        console.log(`[Sitemap] Failed: ${e.message}`);
+    }
+    return urls;
+}
+
+// --- Strategy 3: Google Search fallback ---
+async function googleSearchFallback(companyName, companyUrl) {
+    const results = [];
+    const queries = [
+        `${companyName} 회사 소개 제품 서비스`,
+        `${companyName} 채용 인재상 기업문화`,
+    ];
+
+    for (const query of queries) {
+        try {
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&hl=ko&num=5`;
+            const res = await fetch(searchUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'text/html,application/xhtml+xml',
+                    'Accept-Language': 'ko-KR,ko;q=0.9',
+                },
+                signal: AbortSignal.timeout(6000)
+            });
+            if (!res.ok) continue;
+
+            const html = await res.text();
+            // Extract search result snippets (they contain useful company info)
+            const snippets = html
+                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/&[a-z]+;/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            // Extract meaningful Korean text segments (likely snippets)
+            const koreanSegments = snippets.match(/[가-힣][가-힣\s,.\d]{20,200}/g) || [];
+            if (koreanSegments.length > 0) {
+                results.push(...koreanSegments.slice(0, 10));
+            }
+
+            console.log(`[GoogleSearch] "${query}" -> ${koreanSegments.length} snippets`);
+        } catch (e) {
+            console.log(`[GoogleSearch] Failed: ${e.message}`);
+        }
+    }
+
+    return results.join('\n').substring(0, 5000);
+}
+
+// --- Strategy 4: Naver Search fallback (better for Korean companies) ---
+async function naverSearchFallback(companyName) {
+    try {
+        const query = `${companyName} 회사소개 제품 서비스 채용`;
+        const searchUrl = `https://search.naver.com/search.naver?query=${encodeURIComponent(query)}`;
+        const res = await fetch(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept-Language': 'ko-KR,ko;q=0.9',
+            },
+            signal: AbortSignal.timeout(6000)
+        });
+        if (!res.ok) return '';
+
+        const html = await res.text();
+        const text = html
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&[a-z]+;/gi, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // Extract Korean text segments (search result descriptions)
+        const segments = text.match(/[가-힣][가-힣\s,.\d'"()]{15,300}/g) || [];
+        const result = segments.slice(0, 15).join('\n').substring(0, 4000);
+        console.log(`[NaverSearch] "${companyName}" -> ${segments.length} snippets, ${result.length} chars`);
+        return result;
+    } catch (e) {
+        console.log(`[NaverSearch] Failed: ${e.message}`);
+        return '';
+    }
+}
+
+// ===== Combined Deep Crawl =====
+async function deepCrawl(mainUrl, jobPostingUrl, companyName) {
+    const result = { mainPage: '', subPages: [], jobPosting: '', metaTags: {}, searchData: '' };
 
     let url = mainUrl || jobPostingUrl;
-    if (!url) return result;
+    if (!url) {
+        // No URL at all — go straight to search engines
+        if (companyName) {
+            const [googleData, naverData] = await Promise.allSettled([
+                googleSearchFallback(companyName, ''),
+                naverSearchFallback(companyName)
+            ]);
+            const gd = googleData.status === 'fulfilled' ? googleData.value : '';
+            const nd = naverData.status === 'fulfilled' ? naverData.value : '';
+            result.searchData = (gd + '\n' + nd).substring(0, 8000);
+        }
+        return result;
+    }
     if (!url.startsWith('http')) url = 'https://' + url;
 
-    // 1) Crawl main page
+    // 1) Crawl main page + extract meta tags
     const mainHtml = await fetchPage(url);
-    if (!mainHtml) return result;
+    if (mainHtml) {
+        result.mainPage = extractText(mainHtml, 5000);
+        result.metaTags = extractMetaTags(mainHtml);
+        console.log(`[DeepCrawl] Main: ${url} -> ${result.mainPage.length} chars, Meta: ${Object.keys(result.metaTags).length} keys`);
+    }
 
-    result.mainPage = extractText(mainHtml, 5000);
-    console.log(`[DeepCrawl] Main: ${url} -> ${result.mainPage.length} chars`);
+    // 2) Discover URLs from sitemap.xml AND internal links
+    const [sitemapUrls, internalLinks] = await Promise.allSettled([
+        crawlSitemap(url),
+        Promise.resolve(mainHtml ? extractLinks(mainHtml, url) : [])
+    ]);
 
-    // 2) Extract and prioritize internal links
-    const allLinks = extractLinks(mainHtml, url);
-    const prioritized = allLinks
+    const sUrls = sitemapUrls.status === 'fulfilled' ? sitemapUrls.value : [];
+    const iLinks = internalLinks.status === 'fulfilled' ? internalLinks.value : [];
+
+    // Merge and deduplicate all discovered URLs
+    const allUrls = [...new Set([...sUrls, ...iLinks])];
+
+    // Prioritize by keywords
+    const prioritized = allUrls
         .map(link => {
             const lowerLink = link.toLowerCase();
             const score = PRIORITY_KEYWORDS.reduce((s, kw) => s + (lowerLink.includes(kw) ? 1 : 0), 0);
@@ -224,6 +404,22 @@ async function deepCrawl(mainUrl, jobPostingUrl) {
             result.jobPosting = extractText(jpHtml, 5000);
             console.log(`[DeepCrawl] JobPosting: ${jpUrl} -> ${result.jobPosting.length} chars`);
         }
+    }
+
+    // 5) Check quality — if low, supplement with search engine data
+    const koreanChars = (result.mainPage.match(/[가-힣]/g) || []).length;
+    const jsNoise = (result.mainPage.match(/function|var |const |let |=>|React|angular|vue|webpack|__/gi) || []).length;
+    const qualityLow = koreanChars < 100 || jsNoise > 10;
+
+    if (qualityLow && companyName) {
+        console.log(`[DeepCrawl] Quality low (Korean: ${koreanChars}, JSNoise: ${jsNoise}), falling back to search engines...`);
+        const [googleData, naverData] = await Promise.allSettled([
+            googleSearchFallback(companyName, url),
+            naverSearchFallback(companyName)
+        ]);
+        const gd = googleData.status === 'fulfilled' ? googleData.value : '';
+        const nd = naverData.status === 'fulfilled' ? naverData.value : '';
+        result.searchData = (gd + '\n' + nd).substring(0, 8000);
     }
 
     return result;
@@ -287,13 +483,30 @@ app.post('/api/generate', async (req, res) => {
         console.log('\n[Generate] Start —', company.name, '/', company.jobPosition);
 
         // ===== STEP 1: Deep Crawl + 기업 분석 =====
-        const crawlData = await deepCrawl(company.url, company.jobPostingUrl);
+        const crawlData = await deepCrawl(company.url, company.jobPostingUrl, company.name);
 
         let webContent = '';
         let crawlQualityLow = true; // assume low quality until proven otherwise
 
+        // Include meta tags (always available, even for SPAs)
+        const meta = crawlData.metaTags || {};
+        if (Object.keys(meta).length > 0) {
+            let metaText = '\n=== 홈페이지 메타 정보 ===\n';
+            if (meta.title) metaText += `사이트 제목: ${meta.title}\n`;
+            if (meta.og_site_name) metaText += `사이트명: ${meta.og_site_name}\n`;
+            if (meta.description) metaText += `설명: ${meta.description}\n`;
+            if (meta.og_description && meta.og_description !== meta.description) {
+                metaText += `OG 설명: ${meta.og_description}\n`;
+            }
+            if (meta.keywords) metaText += `키워드: ${meta.keywords}\n`;
+            if (meta.jsonLd) {
+                metaText += `구조화 데이터: ${JSON.stringify(meta.jsonLd, null, 0).substring(0, 2000)}\n`;
+            }
+            webContent += metaText;
+        }
+
         if (crawlData.mainPage) {
-            webContent += `\n=== 홈페이지 메인 ===\n${crawlData.mainPage}\n`;
+            webContent += `\n=== 홈페이지 본문 ===\n${crawlData.mainPage}\n`;
         }
         if (crawlData.subPages.length > 0) {
             crawlData.subPages.forEach(sp => {
@@ -308,14 +521,19 @@ app.post('/api/generate', async (req, res) => {
         if (crawlData.jobPosting) {
             webContent += `\n=== 채용공고 상세 ===\n${crawlData.jobPosting}\n`;
         }
+        if (crawlData.searchData) {
+            webContent += `\n=== 검색엔진 수집 정보 (Google/Naver) ===\n${crawlData.searchData}\n`;
+        }
 
-        // Check crawl quality — JS-rendered SPAs return mostly gibberish
+        // Check crawl quality
         if (webContent.length > 0) {
-            // Count meaningful Korean characters + words (not JS noise)
             const koreanChars = (webContent.match(/[가-힣]/g) || []).length;
-            const jsNoise = (webContent.match(/function|var |const |let |=\s*>|React|angular|vue|webpack|__/gi) || []).length;
-            crawlQualityLow = koreanChars < 100 && webContent.length < 500 || jsNoise > 10;
-            console.log(`[CrawlQuality] Korean: ${koreanChars}, JSNoise: ${jsNoise}, Low: ${crawlQualityLow}`);
+            const jsNoise = (webContent.match(/function|var |const |let |=>|React|angular|vue|webpack|__/gi) || []).length;
+            const hasMetaInfo = !!(meta.description || meta.og_description || meta.jsonLd);
+            const hasSearchData = !!(crawlData.searchData && crawlData.searchData.length > 100);
+            // Quality is adequate if: lots of Korean OR good meta data OR search data available
+            crawlQualityLow = (koreanChars < 100 && !hasMetaInfo && !hasSearchData) || jsNoise > 10;
+            console.log(`[CrawlQuality] Korean: ${koreanChars}, Meta: ${hasMetaInfo}, Search: ${hasSearchData}, JSNoise: ${jsNoise}, Low: ${crawlQualityLow}`);
         }
 
         let analysisPrompt;

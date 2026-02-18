@@ -1049,7 +1049,7 @@ function renderResume(data, theme = 'classic', photo = null) {
 <div class="resume-a4-inner" style="display:flex;flex-direction:row;width:100%;height:100%;">
     <!-- Sidebar -->
     <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:hidden;">
-        <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>
+        <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;display:block;margin:0 auto;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>
         <div style="font-size:18px;font-weight:800;text-align:center;margin:0 0 2px 0;color:#fff;">${d.name || ''}</div>
         <div style="text-align:center;font-size:10px;opacity:0.7;margin-bottom:6px;">${d.jobPosition || ''}</div>
         ${sideSection('CONTACT', `
@@ -1089,7 +1089,7 @@ function renderResume(data, theme = 'classic', photo = null) {
 <div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
 <div class="resume-a4-inner" style="display:flex;flex-direction:column;height:100%;padding:36px 40px;box-sizing:border-box;">
     <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:18px;margin-bottom:0;">
-        ${photo ? `<div style="margin-bottom:10px;"><img src="${photo}" style="width:90px;height:115px;object-fit:cover;border:1px solid #ddd;" /></div>` : ''}
+        ${photo ? `<div style="margin-bottom:10px;"><img src="${photo}" style="width:90px;height:115px;object-fit:cover;border:1px solid #ddd;display:block;margin:0 auto;" /></div>` : ''}
         <h1 style="font-size:26px;font-weight:800;margin:0 0 4px 0;color:#111;letter-spacing:4px;">${d.name || ''}</h1>
         <div style="font-size:12.5px;color:#555;margin-bottom:4px;">${d.jobPosition || ''}</div>
         <div style="font-size:11px;color:#888;">${[contact.email, contact.phone, contact.address].filter(Boolean).join(' ∣ ')}</div>

@@ -470,14 +470,80 @@ body {
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
 }
-/* Cover letter styles */
+/* Cover letter styles for print */
+.cl-section { margin-bottom: 10px; }
+.cl-title { font-size: 13px; padding: 5px 10px; margin-bottom: 6px; border-left: 3px solid #0d9488; }
+.cl-text { font-size: 13px; line-height: 1.6; }
+.cl-text p { margin-bottom: 3px; }
+/* Interview Q&A */
 .qa-block { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
 .qa-question { font-weight: 700; color: #115E59; margin-bottom: 4px; font-size: 13px; }
 .qa-answer { color: #374151; font-size: 12px; }
+/* Modern resume multi-page safety */
+.resume-a4-page { overflow: visible !important; height: auto !important; min-height: 297mm; }
 </style>
 </head><body>${content}</body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 500);
+}
+
+// ===== Inspirational Quotes for Loading =====
+const QUOTES = [
+    { text: '"실패는 성공의 어머니다"', author: '토마스 에디슨' },
+    { text: '"천 리 길도 한 걸음부터"', author: '노자' },
+    { text: '"꿈을 이루고자 하는 용기만 있다면,\n모든 꿈은 이루어진다"', author: '월트 디즈니' },
+    { text: '"오늘 할 수 있는 일에\n최선을 다하라"', author: '에이브러햄 링컨' },
+    { text: '"당신이 할 수 있다고 믿든,\n할 수 없다고 믿든, 당신이 옳다"', author: '헨리 포드' },
+    { text: '"위대한 일은 작은 일들이\n모여 이루어진다"', author: '빈센트 반 고흐' },
+    { text: '"성공은 매일 반복한\n작은 노력의 합이다"', author: '로버트 콜리어' },
+    { text: '"지금 이 순간이\n가장 빠른 시작이다"', author: '중국 속담' },
+    { text: '"원숭이도 나무에서 떨어질 때가 있다.\n하지만 다시 올라간다 💪"', author: '한국 속담 (개량)' },
+    { text: '"준비된 자에게\n기회는 찾아온다"', author: '루이 파스퇴르' },
+    { text: '"오퍼스도 div에서\n떨어질 때가 있다 🤖"', author: 'One&Only Labs' },
+    { text: '"행동이 말보다\n크게 말한다"', author: '벤자민 프랭클린' },
+    { text: '"노력 없이 얻어지는 것은\n아무것도 없다"', author: '호레이스' },
+    { text: '"자신감은 성공의\n첫 번째 비밀이다"', author: '랄프 왈도 에머슨' },
+    { text: '"인생에서 가장 큰 영광은\n넘어지지 않는 것이 아니라,\n넘어질 때마다 일어서는 것이다"', author: '넬슨 만델라' },
+];
+
+let quoteInterval = null;
+function showLoadingOverlay() {
+    let overlay = document.getElementById('loadingOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loadingOverlay';
+        overlay.innerHTML = `
+            <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <div style="max-width:500px;text-align:center;padding:40px;">
+                    <div style="width:50px;height:50px;border:3px solid rgba(255,255,255,0.15);border-top-color:#2dd4bf;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 32px;"></div>
+                    <div id="quoteText" style="font-size:22px;font-weight:700;color:#fff;line-height:1.6;margin-bottom:12px;transition:opacity 0.5s;white-space:pre-line;"></div>
+                    <div id="quoteAuthor" style="font-size:13px;color:rgba(255,255,255,0.5);transition:opacity 0.5s;"></div>
+                    <div style="margin-top:32px;font-size:12px;color:rgba(255,255,255,0.3);">AI가 기업을 분석하고 맞춤 콘텐츠를 생성하고 있습니다...</div>
+                </div>
+            </div>
+            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block';
+    function rotateQuote() {
+        const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+        const qt = document.getElementById('quoteText');
+        const qa = document.getElementById('quoteAuthor');
+        if (qt && qa) {
+            qt.style.opacity = '0'; qa.style.opacity = '0';
+            setTimeout(() => {
+                qt.textContent = q.text; qa.textContent = `— ${q.author}`;
+                qt.style.opacity = '1'; qa.style.opacity = '1';
+            }, 400);
+        }
+    }
+    rotateQuote();
+    quoteInterval = setInterval(rotateQuote, 5000);
+}
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+    if (quoteInterval) { clearInterval(quoteInterval); quoteInterval = null; }
 }
 
 // ===== GENERATE =====
@@ -491,6 +557,7 @@ $('#btnGenerate').addEventListener('click', async () => {
     btn.disabled = true;
     $('.btn-generate-text').style.display = 'none';
     $('.btn-generate-loading').style.display = 'inline-flex';
+    showLoadingOverlay();
 
     try {
         setProgress(10, '기업 정보 분석 중...');
@@ -616,6 +683,7 @@ $('#btnGenerate').addEventListener('click', async () => {
         }
 
         setProgress(100, '생성 완료!');
+        hideLoadingOverlay();
         setTimeout(() => { $('#progressBar').style.display = 'none'; }, 2000);
 
         $$('.tab-btn')[0].click();
@@ -625,10 +693,12 @@ $('#btnGenerate').addEventListener('click', async () => {
     } catch (err) {
         showToast(`서버 연결 오류: ${err.message}`);
         $('#progressBar').style.display = 'none';
+        hideLoadingOverlay();
     } finally {
         btn.disabled = false;
         $('.btn-generate-text').style.display = 'inline';
         $('.btn-generate-loading').style.display = 'none';
+        hideLoadingOverlay();
     }
 });
 
@@ -648,7 +718,7 @@ $('#btnCopyInterview').addEventListener('click', () => {
 
 // ===== Regenerate Buttons (Cover Letter & Interview) =====
 async function regenerateContent(type) {
-    if (!validateInputs()) return;
+    if (!validate()) return;
     const data = collectData();
     const btn = type === 'coverLetter' ? $('#btnRegenCover') : $('#btnRegenInterview');
     const originalText = btn.innerHTML;

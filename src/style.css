@@ -232,7 +232,7 @@
 
 /* ===== Cover Letter Sections ===== */
 .cl-section {
-    margin-bottom: 24px;
+    margin-bottom: 14px;
 }
 
 .cl-section:last-child {
@@ -253,13 +253,13 @@
 
 .cl-text {
     font-size: 14px;
-    line-height: 2;
+    line-height: 1.7;
     color: var(--text-secondary);
     padding: 0 4px;
 }
 
 .cl-text p {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .cl-text p:last-child {

@@ -572,15 +572,16 @@ $('#btnGenerate').addEventListener('click', async () => {
                 }
                 // === END MERGE ===
 
-                $('#resumeEmpty').style.display = 'none';
-                $('#resumeContent').style.display = 'block';
+                $('#resumeEmpty').style.setProperty('display', 'none', 'important');
+                $('#resumeContent').style.setProperty('display', 'block', 'important');
                 $('#resumeContent').classList.remove('hidden');
                 const theme = $('#resumeTheme').value;
+                console.log('[Resume] Before renderResume, resumeContent computed display:', window.getComputedStyle($('#resumeContent')).display);
                 $('#resumeText').innerHTML = renderResume(currentResumeData, theme, profilePhoto);
                 setTimeout(() => autoFitA4Content(), 0);
-                // Force re-scale after a delay to ensure tab dimensions are available
                 setTimeout(() => scaleResumePreview(), 300);
-                console.log('[Resume] Render complete, resumeContent display =', window.getComputedStyle($('#resumeContent')).display);
+                console.log('[Resume] Render complete, resumeContent display =', window.getComputedStyle($('#resumeContent')).display,
+                    'resumeText innerHTML length =', $('#resumeText').innerHTML.length);
             } catch (resumeErr) {
                 console.error('[Resume] Render error:', resumeErr);
                 showToast('이력서 렌더링 오류: ' + resumeErr.message);
@@ -592,8 +593,8 @@ $('#btnGenerate').addEventListener('click', async () => {
         // Interview — with formatting
         if (result.interview) {
             try {
-                $('#interviewEmpty').style.display = 'none';
-                $('#interviewContent').style.display = 'block';
+                $('#interviewEmpty').style.setProperty('display', 'none', 'important');
+                $('#interviewContent').style.setProperty('display', 'block', 'important');
                 $('#interviewContent').classList.remove('hidden');
                 let interviewHtml = result.interview;
                 interviewHtml = interviewHtml.replace(/<div class="qa-answer">((?:(?!<\/div>).)+)<\/div>/gs, (match, content) => {

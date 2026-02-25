@@ -438,7 +438,7 @@ function validateResumeData(resumeData, profile) {
     if (resumeData.skills && profile.skills?.length > 0) {
         const profileSkillsLower = profile.skills.map(s => s.toLowerCase());
         const profileText = (profile.freeDescription || '').toLowerCase() + ' ' +
-            (profile.certifications || '').toLowerCase() + ' ' +
+            (Array.isArray(profile.certifications) ? profile.certifications.join(' ') : (profile.certifications || '')).toLowerCase() + ' ' +
             profileSkillsLower.join(' ');
         resumeData.skills = resumeData.skills.filter(skill => {
             const skillLower = skill.toLowerCase();

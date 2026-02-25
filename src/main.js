@@ -651,7 +651,8 @@ async function regenerateContent(type) {
             $('#coverLetterText').innerHTML = formatCoverLetter(result.coverLetter);
             showToast('자기소개서가 재생성되었습니다');
         } else if (type === 'interview' && result.interview) {
-            $('#interviewText').innerHTML = formatInterview(result.interview);
+            // Interview HTML comes ready from server (qa-block divs)
+            $('#interviewText').innerHTML = result.interview;
             showToast('면접 예상질문이 재생성되었습니다');
         }
     } catch (e) {

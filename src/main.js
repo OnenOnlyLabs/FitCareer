@@ -225,6 +225,7 @@ function saveProfile() {
         skills: skills,
         certifications: certifications,
         freeDescription: $('#freeDescription').value,
+        photo: profilePhoto || null,
         experiences: Array.from($('#experienceList').querySelectorAll('.experience-item')).map(item => ({
             company: item.querySelector('.exp-company').value,
             role: item.querySelector('.exp-role').value,
@@ -250,6 +251,13 @@ function loadProfile() {
     if (p.address) $('#userAddress').value = p.address;
     if (p.gender) $('#userGender').value = p.gender;
     if (p.age) $('#userAge').value = p.age;
+    if (p.photo) {
+        profilePhoto = p.photo;
+        $('#photoImg').src = profilePhoto;
+        $('#photoImg').style.display = 'block';
+        $('#photoPlaceholder').style.display = 'none';
+        $('#btnRemovePhoto').style.display = 'flex';
+    }
     if (p.skills) { skills = p.skills; renderSkills(); }
     if (p.certifications) {
         // Handle both array (new) and string (legacy) formats
@@ -512,6 +520,30 @@ $('#btnGenerate').addEventListener('click', async () => {
         // Resume — render JSON data into themed HTML template
         if (result.resumeData) {
             currentResumeData = result.resumeData;
+
+            // Client-side fallback: if server sent raw string, try parsing it here
+            if (currentResumeData.raw && typeof currentResumeData.raw === 'string') {
+                try {
+                    let rawStr = currentResumeData.raw;
+                    // Strip code blocks
+                    rawStr = rawStr.replace(/^```json?\s*/i, '').replace(/\s*```$/m, '').trim();
+                    // Find JSON between first { and last }
+                    const firstBrace = rawStr.indexOf('{');
+                    const lastBrace = rawStr.lastIndexOf('}');
+                    if (firstBrace !== -1 && lastBrace > firstBrace) {
+                        rawStr = rawStr.substring(firstBrace, lastBrace + 1);
+                    }
+                    // Clean and parse
+                    rawStr = rawStr.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+                    const parsed = JSON.parse(rawStr);
+                    if (parsed.name || parsed.contact) {
+                        currentResumeData = parsed;
+                        console.log('[Resume] Client-side JSON parse succeeded');
+                    }
+                } catch (e) {
+                    console.warn('[Resume] Client-side JSON parse also failed:', e.message);
+                }
+            }
 
             // === MERGE: User input data takes priority over AI-generated data ===
             const userProfile = data.profile;

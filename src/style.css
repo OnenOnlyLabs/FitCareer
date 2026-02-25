@@ -112,9 +112,11 @@
     transition: all 0.2s;
 }
 
-.experience-item input.edu-period {
-    flex: 0 0 auto;
-    width: 170px;
+.experience-item input.edu-period,
+.experience-item input.exp-period {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 220px;
 }
 
 .experience-item input:focus {

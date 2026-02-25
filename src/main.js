@@ -522,80 +522,92 @@ $('#btnGenerate').addEventListener('click', async () => {
 
         // Resume — render JSON data into themed HTML template
         if (result.resumeData) {
-            currentResumeData = result.resumeData;
+            try {
+                currentResumeData = result.resumeData;
+                console.log('[Resume] Received resumeData:', JSON.stringify(currentResumeData).substring(0, 200));
 
-            // Client-side fallback: if server sent raw string, try parsing it here
-            if (currentResumeData.raw && typeof currentResumeData.raw === 'string') {
-                try {
-                    let rawStr = currentResumeData.raw;
-                    // Strip code blocks
-                    rawStr = rawStr.replace(/^```json?\s*/i, '').replace(/\s*```$/m, '').trim();
-                    // Find JSON between first { and last }
-                    const firstBrace = rawStr.indexOf('{');
-                    const lastBrace = rawStr.lastIndexOf('}');
-                    if (firstBrace !== -1 && lastBrace > firstBrace) {
-                        rawStr = rawStr.substring(firstBrace, lastBrace + 1);
+                // Client-side fallback: if server sent raw string, try parsing it here
+                if (currentResumeData.raw && typeof currentResumeData.raw === 'string') {
+                    try {
+                        let rawStr = currentResumeData.raw;
+                        rawStr = rawStr.replace(/^```json?\s*/i, '').replace(/\s*```$/m, '').trim();
+                        const firstBrace = rawStr.indexOf('{');
+                        const lastBrace = rawStr.lastIndexOf('}');
+                        if (firstBrace !== -1 && lastBrace > firstBrace) {
+                            rawStr = rawStr.substring(firstBrace, lastBrace + 1);
+                        }
+                        rawStr = rawStr.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+                        const parsed = JSON.parse(rawStr);
+                        if (parsed.name || parsed.contact) {
+                            currentResumeData = parsed;
+                            console.log('[Resume] Client-side JSON parse succeeded');
+                        }
+                    } catch (e) {
+                        console.warn('[Resume] Client-side JSON parse also failed:', e.message);
                     }
-                    // Clean and parse
-                    rawStr = rawStr.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
-                    const parsed = JSON.parse(rawStr);
-                    if (parsed.name || parsed.contact) {
-                        currentResumeData = parsed;
-                        console.log('[Resume] Client-side JSON parse succeeded');
-                    }
-                } catch (e) {
-                    console.warn('[Resume] Client-side JSON parse also failed:', e.message);
                 }
-            }
 
-            // === MERGE: User input data takes priority over AI-generated data ===
-            const userProfile = data.profile;
-            if (userProfile.name) currentResumeData.name = userProfile.name;
-            if (userProfile.gender) currentResumeData.gender = userProfile.gender;
-            if (userProfile.age) currentResumeData.age = userProfile.age;
-            if (userProfile.email || userProfile.phone || userProfile.address) {
-                currentResumeData.contact = currentResumeData.contact || {};
-                if (userProfile.email) currentResumeData.contact.email = userProfile.email;
-                if (userProfile.phone) currentResumeData.contact.phone = userProfile.phone;
-                if (userProfile.address) currentResumeData.contact.address = userProfile.address;
-            }
-            if (userProfile.age) {
-                const ageLabel = userProfile.isManAge ? `만 ${userProfile.age}세` : `${userProfile.age}세`;
-                currentResumeData.genderAge = `${userProfile.gender || ''} / ${ageLabel}`;
-            } else if (userProfile.gender) {
-                currentResumeData.genderAge = userProfile.gender;
-            }
-            // User education entries override AI education
-            if (userProfile.educations?.length > 0) {
-                currentResumeData.education = userProfile.educations;
-            }
-            if (data.company?.jobPosition) {
-                currentResumeData.jobPosition = data.company.jobPosition;
-            }
-            // === END MERGE ===
+                // === MERGE: User input data takes priority over AI-generated data ===
+                const userProfile = data.profile;
+                if (userProfile.name) currentResumeData.name = userProfile.name;
+                if (userProfile.gender) currentResumeData.gender = userProfile.gender;
+                if (userProfile.age) currentResumeData.age = userProfile.age;
+                if (userProfile.email || userProfile.phone || userProfile.address) {
+                    currentResumeData.contact = currentResumeData.contact || {};
+                    if (userProfile.email) currentResumeData.contact.email = userProfile.email;
+                    if (userProfile.phone) currentResumeData.contact.phone = userProfile.phone;
+                    if (userProfile.address) currentResumeData.contact.address = userProfile.address;
+                }
+                if (userProfile.age) {
+                    const ageLabel = userProfile.isManAge ? `만 ${userProfile.age}세` : `${userProfile.age}세`;
+                    currentResumeData.genderAge = `${userProfile.gender || ''} / ${ageLabel}`;
+                } else if (userProfile.gender) {
+                    currentResumeData.genderAge = userProfile.gender;
+                }
+                if (userProfile.educations?.length > 0) {
+                    currentResumeData.education = userProfile.educations;
+                }
+                if (data.company?.jobPosition) {
+                    currentResumeData.jobPosition = data.company.jobPosition;
+                }
+                // === END MERGE ===
 
-            $('#resumeEmpty').style.display = 'none';
-            $('#resumeContent').style.display = 'block';
-            const theme = $('#resumeTheme').value;
-            $('#resumeText').innerHTML = renderResume(currentResumeData, theme, profilePhoto);
-            setTimeout(() => autoFitA4Content(), 0);
+                $('#resumeEmpty').style.display = 'none';
+                $('#resumeContent').style.display = 'block';
+                const theme = $('#resumeTheme').value;
+                $('#resumeText').innerHTML = renderResume(currentResumeData, theme, profilePhoto);
+                setTimeout(() => autoFitA4Content(), 0);
+                console.log('[Resume] Render complete');
+            } catch (resumeErr) {
+                console.error('[Resume] Render error:', resumeErr);
+                showToast('이력서 렌더링 오류: ' + resumeErr.message);
+            }
+        } else {
+            console.warn('[Resume] No resumeData in response');
         }
 
         // Interview — with formatting
         if (result.interview) {
-            $('#interviewEmpty').style.display = 'none';
-            $('#interviewContent').style.display = 'block';
-            let interviewHtml = result.interview;
-            // Add paragraph breaks to answers that don't have <p> tags
-            interviewHtml = interviewHtml.replace(/<div class="qa-answer">((?:(?!<\/div>).)+)<\/div>/gs, (match, content) => {
-                if (!content.includes('<p>')) {
-                    const paragraphs = content.trim().split(/\n{2,}|\.\s+(?=[가-힣A-Z])/);
-                    const formatted = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
-                    return `<div class="qa-answer">${formatted}</div>`;
-                }
-                return match;
-            });
-            $('#interviewText').innerHTML = interviewHtml;
+            try {
+                $('#interviewEmpty').style.display = 'none';
+                $('#interviewContent').style.display = 'block';
+                let interviewHtml = result.interview;
+                interviewHtml = interviewHtml.replace(/<div class="qa-answer">((?:(?!<\/div>).)+)<\/div>/gs, (match, content) => {
+                    if (!content.includes('<p>')) {
+                        const paragraphs = content.trim().split(/\n{2,}|\.\s+(?=[가-힣A-Z])/);
+                        const formatted = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+                        return `<div class="qa-answer">${formatted}</div>`;
+                    }
+                    return match;
+                });
+                $('#interviewText').innerHTML = interviewHtml;
+                console.log('[Interview] Render complete');
+            } catch (interviewErr) {
+                console.error('[Interview] Render error:', interviewErr);
+                showToast('면접질문 렌더링 오류: ' + interviewErr.message);
+            }
+        } else {
+            console.warn('[Interview] No interview data in response');
         }
 
         setProgress(100, '생성 완료!');

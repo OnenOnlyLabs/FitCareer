@@ -574,10 +574,13 @@ $('#btnGenerate').addEventListener('click', async () => {
 
                 $('#resumeEmpty').style.display = 'none';
                 $('#resumeContent').style.display = 'block';
+                $('#resumeContent').classList.remove('hidden');
                 const theme = $('#resumeTheme').value;
                 $('#resumeText').innerHTML = renderResume(currentResumeData, theme, profilePhoto);
                 setTimeout(() => autoFitA4Content(), 0);
-                console.log('[Resume] Render complete');
+                // Force re-scale after a delay to ensure tab dimensions are available
+                setTimeout(() => scaleResumePreview(), 300);
+                console.log('[Resume] Render complete, resumeContent display =', window.getComputedStyle($('#resumeContent')).display);
             } catch (resumeErr) {
                 console.error('[Resume] Render error:', resumeErr);
                 showToast('이력서 렌더링 오류: ' + resumeErr.message);
@@ -591,6 +594,7 @@ $('#btnGenerate').addEventListener('click', async () => {
             try {
                 $('#interviewEmpty').style.display = 'none';
                 $('#interviewContent').style.display = 'block';
+                $('#interviewContent').classList.remove('hidden');
                 let interviewHtml = result.interview;
                 interviewHtml = interviewHtml.replace(/<div class="qa-answer">((?:(?!<\/div>).)+)<\/div>/gs, (match, content) => {
                     if (!content.includes('<p>')) {

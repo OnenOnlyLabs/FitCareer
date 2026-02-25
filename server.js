@@ -69,6 +69,9 @@ function buildProfileDesc(profile) {
     let desc = '';
     desc += `이름: ${profile.name}\n`;
 
+    if (profile.gender) desc += `성별: ${profile.gender}\n`;
+    if (profile.age) desc += `나이: ${profile.age}세\n`;
+
     if (profile.email) desc += `이메일: ${profile.email}\n`;
     if (profile.phone) desc += `연락처: ${profile.phone}\n`;
     if (profile.address) desc += `주소: ${profile.address}\n`;
@@ -96,8 +99,12 @@ function buildProfileDesc(profile) {
         desc += `\n보유 스킬: ${profile.skills.join(', ')}\n`;
     }
 
-    if (profile.certifications) {
-        desc += `\n자격증/수상: ${profile.certifications}\n`;
+    // Handle certifications as array (hashtag UI) or string (legacy)
+    const certList = Array.isArray(profile.certifications)
+        ? profile.certifications
+        : (profile.certifications ? profile.certifications.split(/[,，]/).map(c => c.trim()).filter(c => c) : []);
+    if (certList.length > 0) {
+        desc += `\n자격증/수상: ${certList.join(', ')}\n`;
     }
 
     if (profile.freeDescription) {
@@ -452,7 +459,10 @@ function validateResumeData(resumeData, profile) {
 
     // Remove certifications not mentioned in profile
     if (resumeData.certifications) {
-        const certText = (profile.certifications || '').toLowerCase() + ' ' +
+        const profileCerts = Array.isArray(profile.certifications)
+            ? profile.certifications
+            : (profile.certifications ? profile.certifications.split(/[,，]/).map(c => c.trim()).filter(c => c) : []);
+        const certText = profileCerts.join(' ').toLowerCase() + ' ' +
             (profile.freeDescription || '').toLowerCase();
         if (certText.trim().length > 0) {
             resumeData.certifications = resumeData.certifications.filter(cert =>

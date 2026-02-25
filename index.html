@@ -142,6 +142,23 @@
               class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
               placeholder="예: 홍길동" />
           </div>
+          <div class="flex gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">성별</label>
+              <select id="userGender"
+                class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer">
+                <option value="">선택</option>
+                <option value="남">남</option>
+                <option value="여">여</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-500 mb-1.5">나이</label>
+              <input type="number" id="userAge"
+                class="w-full h-10 px-3.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                placeholder="예: 28" min="15" max="99" />
+            </div>
+          </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">이메일</label>
             <input type="email" id="userEmail"
@@ -183,9 +200,12 @@
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">자격증 / 수상</label>
-            <textarea id="certifications"
-              class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all resize-y placeholder:text-slate-400"
-              rows="2" placeholder="예: 정보처리기사, TOEIC 900"></textarea>
+            <div class="tags-input-wrap">
+              <div class="tags-display flex flex-wrap gap-1.5 mb-1.5" id="certTags"></div>
+              <input type="text" id="certInput"
+                class="w-full h-8 px-3 text-xs border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
+                placeholder="자격증/수상 입력 후 Enter" />
+            </div>
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1.5">강점 / 자유 기술</label>

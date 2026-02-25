@@ -117,6 +117,48 @@ $('#skillInput').addEventListener('keydown', (e) => {
     }
 });
 
+// ===== Certifications Tags =====
+let certifications = [];
+
+function renderCerts() {
+    const container = $('#certTags');
+    container.innerHTML = certifications.map((c, i) => `
+    <span class="skill-tag" style="background:#f0f7f0;color:#2a5a2a;border-color:#c6e6c6;">
+      ${c}
+      <button class="tag-remove" data-index="${i}">&times;</button>
+    </span>
+  `).join('');
+    container.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            certifications.splice(parseInt(btn.dataset.index), 1);
+            renderCerts();
+        });
+    });
+}
+
+$('#certInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (e.isComposing) return;
+        const val = e.target.value.trim();
+        if (val && !certifications.includes(val)) {
+            certifications.push(val);
+            renderCerts();
+        }
+        e.target.value = '';
+    }
+});
+
+$('#certInput').addEventListener('compositionend', (e) => {
+    const val = e.target.value.trim();
+    if (val && !certifications.includes(val) && e.data && e.data.includes('\n')) {
+        certifications.push(val);
+        renderCerts();
+        e.target.value = '';
+    }
+});
+
 // Handle Korean IME: when composition ends, check if Enter was intended
 $('#skillInput').addEventListener('compositionend', (e) => {
     // After IME finalizes, if user pressed Enter during composition,
@@ -177,8 +219,10 @@ function saveProfile() {
         email: $('#userEmail').value,
         phone: $('#userPhone').value,
         address: $('#userAddress').value,
+        gender: $('#userGender').value,
+        age: $('#userAge').value,
         skills: skills,
-        certifications: $('#certifications').value,
+        certifications: certifications,
         freeDescription: $('#freeDescription').value,
         experiences: Array.from($('#experienceList').querySelectorAll('.experience-item')).map(item => ({
             company: item.querySelector('.exp-company').value,
@@ -202,8 +246,18 @@ function loadProfile() {
     if (p.email) $('#userEmail').value = p.email;
     if (p.phone) $('#userPhone').value = p.phone;
     if (p.address) $('#userAddress').value = p.address;
+    if (p.gender) $('#userGender').value = p.gender;
+    if (p.age) $('#userAge').value = p.age;
     if (p.skills) { skills = p.skills; renderSkills(); }
-    if (p.certifications) $('#certifications').value = p.certifications;
+    if (p.certifications) {
+        // Handle both array (new) and string (legacy) formats
+        if (Array.isArray(p.certifications)) {
+            certifications = p.certifications;
+        } else {
+            certifications = p.certifications.split(/[,，]/).map(c => c.trim()).filter(c => c);
+        }
+        renderCerts();
+    }
     if (p.freeDescription) $('#freeDescription').value = p.freeDescription;
     if (p.experiences) {
         p.experiences.forEach(exp => addExperience(exp.company, exp.role));
@@ -319,8 +373,10 @@ function collectData() {
                 role: item.querySelector('.exp-role').value.trim()
             })).filter(e => e.company || e.role),
             skills: skills,
-            certifications: $('#certifications').value.trim(),
-            freeDescription: $('#freeDescription').value.trim()
+            certifications: certifications,
+            freeDescription: $('#freeDescription').value.trim(),
+            gender: $('#userGender').value,
+            age: $('#userAge').value.trim()
         },
         format: {
             type: $('#outputFormat').value,
@@ -457,6 +513,8 @@ $('#btnGenerate').addEventListener('click', async () => {
             // === MERGE: User input data takes priority over AI-generated data ===
             const userProfile = data.profile;
             if (userProfile.name) currentResumeData.name = userProfile.name;
+            if (userProfile.gender) currentResumeData.gender = userProfile.gender;
+            if (userProfile.age) currentResumeData.age = userProfile.age;
             if (userProfile.email || userProfile.phone || userProfile.address) {
                 currentResumeData.contact = currentResumeData.contact || {};
                 if (userProfile.email) currentResumeData.contact.email = userProfile.email;
@@ -607,8 +665,17 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
                 <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
                     <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
                 </div>
-                <div id="coverLetterText" style="font-size:14px; line-height:1.85; color:#1A1D26;">
+                <div style="font-size:14px; line-height:1.85; color:#1A1D26;">
                     ${$('#coverLetterText').innerHTML}
+                </div>
+            </div>`;
+        } else if (sec.type === 'interview') {
+            return `<div style="${pageBreak} padding:20mm;">
+                <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
+                    <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
+                </div>
+                <div style="font-size:14px; line-height:1.7; color:#1A1D26;">
+                    ${$('#interviewText').innerHTML}
                 </div>
             </div>`;
         } else {
@@ -636,13 +703,21 @@ body {
     -webkit-print-color-adjust: exact !important;
 }
 /* Cover letter section styling */
-.cl-section { font-weight: 700; color: #115E59; font-size: 15px; margin: 20px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; }
+.cl-section { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
+.cl-section:last-child { border-bottom: none; }
+.cl-title { font-weight: 700; color: #115E59; font-size: 15px; margin-bottom: 10px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; }
+.cl-text { font-size: 14px; line-height: 1.85; color: #1A1D26; }
+.cl-text p { margin-bottom: 12px; }
 /* Resume A4 page */
 .resume-a4-page {
     width: 210mm !important; min-height: 297mm !important; height: auto;
     box-shadow: none !important; overflow: visible;
     transform: none !important; margin: 0 !important;
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+}
+.resume-a4-inner {
+    display: flex !important; flex-direction: column !important;
+    min-height: 297mm !important; height: auto !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
 .resume-a4-page th, .resume-a4-page td {
@@ -659,9 +734,11 @@ body {
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
 }
 /* Interview Q&A */
-.qa-block { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #E5E7EB; }
-.qa-question { font-weight: 700; color: #115E59; margin-bottom: 6px; font-size: 14px; }
+.qa-block { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #E5E7EB; }
+.qa-block:last-child { border-bottom: none; }
+.qa-question { font-weight: 700; color: #115E59; margin-bottom: 8px; font-size: 14px; }
 .qa-answer { color: #374151; font-size: 13px; line-height: 1.7; }
+.qa-answer p { margin-bottom: 6px; }
 /* Output header — hide in print */
 .output-header, .output-actions, .edit-hint, .btn-action { display: none !important; }
 </style>
@@ -1106,7 +1183,8 @@ function renderResume(data, theme = 'classic', photo = null) {
                 : `<div style="width:82px;height:108px;border:1px solid #ddd;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#f5f5f5;color:#bbb;font-size:10px;">사진</div>`}
                 </td>
                 <th style="${thStyle}width:80px;">성 명</th>
-                <td style="${tdStyle}font-size:15px;font-weight:700;" colspan="2">${d.name || ''}</td>
+                <td style="${tdStyle}font-size:15px;font-weight:700;">${d.name || ''}</td>
+                <td style="${tdStyle}text-align:center;width:140px;">${d.gender ? `${d.gender}${d.age ? ` / ${d.age}세` : ''}` : (d.age ? `${d.age}세` : '')}</td>
             </tr>
             <tr>
                 <th style="${thStyle}">이메일</th>

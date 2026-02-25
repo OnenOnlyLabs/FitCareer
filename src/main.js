@@ -175,7 +175,7 @@ $('.tags-input-wrap').addEventListener('click', () => {
 });
 
 // ===== Experience Items =====
-function addExperience(company = '', role = '') {
+function addExperience(company = '', role = '', period = '') {
     const idx = experienceCount++;
     const list = $('#experienceList');
     const item = document.createElement('div');
@@ -184,6 +184,7 @@ function addExperience(company = '', role = '') {
     item.innerHTML = `
     <input type="text" class="input input-sm exp-company" placeholder="회사명" value="${company}" />
     <input type="text" class="input input-sm exp-role" placeholder="직무/역할" value="${role}" />
+    <input type="text" class="input input-sm exp-period" placeholder="기간 (예: 2020.03~2023.06)" value="${period}" />
     <button class="btn-remove-exp" data-index="${idx}">&times;</button>
   `;
     list.appendChild(item);
@@ -226,7 +227,8 @@ function saveProfile() {
         freeDescription: $('#freeDescription').value,
         experiences: Array.from($('#experienceList').querySelectorAll('.experience-item')).map(item => ({
             company: item.querySelector('.exp-company').value,
-            role: item.querySelector('.exp-role').value
+            role: item.querySelector('.exp-role').value,
+            period: item.querySelector('.exp-period').value
         })),
         educations: Array.from($('#educationList').querySelectorAll('.experience-item')).map(item => ({
             school: item.querySelector('.edu-school').value,
@@ -260,7 +262,7 @@ function loadProfile() {
     }
     if (p.freeDescription) $('#freeDescription').value = p.freeDescription;
     if (p.experiences) {
-        p.experiences.forEach(exp => addExperience(exp.company, exp.role));
+        p.experiences.forEach(exp => addExperience(exp.company, exp.role, exp.period || ''));
     }
     if (p.educations) {
         p.educations.forEach(edu => addEducation(edu.school, edu.major, edu.period));
@@ -370,7 +372,8 @@ function collectData() {
             })).filter(e => e.school || e.major),
             experiences: Array.from($('#experienceList').querySelectorAll('.experience-item')).map(item => ({
                 company: item.querySelector('.exp-company').value.trim(),
-                role: item.querySelector('.exp-role').value.trim()
+                role: item.querySelector('.exp-role').value.trim(),
+                period: item.querySelector('.exp-period').value.trim()
             })).filter(e => e.company || e.role),
             skills: skills,
             certifications: certifications,

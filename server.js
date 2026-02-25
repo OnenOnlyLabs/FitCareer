@@ -91,7 +91,7 @@ function buildProfileDesc(profile) {
     if (profile.experiences?.length > 0) {
         desc += '\n경력:\n';
         profile.experiences.forEach((exp, i) => {
-            desc += `- ${exp.company || '(회사명 미입력)'} / ${exp.role || '(직무 미입력)'}\n`;
+            desc += `- ${exp.company || '(회사명 미입력)'} / ${exp.role || '(직무 미입력)'}${exp.period ? ' (' + exp.period + ')' : ''}\n`;
         });
     }
 
@@ -631,6 +631,7 @@ JSON 형식이 아닌 자연어로 작성해주세요.`;
 1. 진정성 있고 자연스러운 한국어 (과도한 미사여구 금지)
 2. 구체적인 사례와 에피소드 활용 (단, 프로필에 있는 것만)
 3. 마크다운 문법 사용하지 않기 (순수 텍스트)
+4. 지원자가 보유한 자격증/수상 내역이 있으면 반드시 자소서 내용에 포함시키세요 (관련 경험/역량 섹션에 자연스럽게 녹여내기)
 
 === 줄바꿈 규칙 ===
 - 각 섹션 내에서 문단을 2개로 나누되, 반드시 문장이 끝나는 위치(마침표 뒤)에서만 줄바꿈
@@ -767,14 +768,33 @@ ${profileDesc}
         // Clean markdown code blocks if AI still adds them
         resumeRaw = resumeRaw.replace(/^```json?\s*/i, '').replace(/\s*```$/m, '').trim();
 
+        // Robust JSON extraction: find content between first { and last }
+        if (!resumeRaw.startsWith('{')) {
+            const firstBrace = resumeRaw.indexOf('{');
+            const lastBrace = resumeRaw.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                resumeRaw = resumeRaw.substring(firstBrace, lastBrace + 1);
+                console.log('[Resume] Extracted JSON from mixed content');
+            }
+        }
+
         let resumeData;
         try {
             resumeData = JSON.parse(resumeRaw);
             // Anti-hallucination: validate against original profile
             resumeData = validateResumeData(resumeData, profile);
         } catch (e) {
-            console.error('[Resume] JSON parse error, using raw text as fallback');
-            resumeData = { name: profile.name, raw: resumeRaw };
+            console.error('[Resume] JSON parse error:', e.message);
+            // Try one more time: strip control characters and re-parse
+            try {
+                const cleaned = resumeRaw.replace(/[\x00-\x1F\x7F]/g, ' ').replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+                resumeData = JSON.parse(cleaned);
+                resumeData = validateResumeData(resumeData, profile);
+                console.log('[Resume] Parsed after cleanup');
+            } catch (e2) {
+                console.error('[Resume] Final parse failed, using raw text');
+                resumeData = { name: profile.name, raw: resumeRaw };
+            }
         }
 
         // ===== STEP 4: 면접 예상질문 =====

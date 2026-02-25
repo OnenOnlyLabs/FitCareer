@@ -388,95 +388,97 @@
                   🔄 재생성
                 </button>
               </div>
-              <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
-              <div class="output-body" id="coverLetterText" contenteditable="false"></div>
             </div>
+            <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
+            <div class="output-body" id="coverLetterText" contenteditable="false"></div>
           </div>
         </div>
+      </div>
 
-        <!-- Tab: 이력서 -->
-        <div class="tab-pane" id="tabResume">
-          <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="resumeEmpty">
-            <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty2"></div>
-            <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
-            <p class="text-xs text-slate-400 mt-1">자소서 생성 시 이력서도 함께 생성됩니다</p>
+      <!-- Tab: 이력서 -->
+      <div class="tab-pane" id="tabResume">
+        <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="resumeEmpty">
+          <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty2"></div>
+          <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
+          <p class="text-xs text-slate-400 mt-1">자소서 생성 시 이력서도 함께 생성됩니다</p>
+        </div>
+        <div class="output-content" id="resumeContent" style="display:none;">
+          <div class="output-header flex items-center justify-between mb-3">
+            <h3 class="text-base font-bold text-slate-800">이력서</h3>
+            <div class="output-actions flex items-center gap-2">
+              <select id="resumeTheme"
+                class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+                title="이력서 테마">
+                <option value="classic">클래식</option>
+                <option value="modern">모던</option>
+                <option value="simple">심플</option>
+              </select>
+              <select id="resumeColor"
+                class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
+                title="모던 색상" style="display:none;">
+                <option value="#1565c0">블루</option>
+                <option value="#047857">에메랄드</option>
+                <option value="#7c3aed">퍼플</option>
+                <option value="#c62828">레드</option>
+                <option value="#1e3a5f">네이비</option>
+                <option value="#374151">차콜</option>
+              </select>
+              <div class="flex items-center gap-0.5 bg-slate-100 rounded-xl px-1 py-0.5 border border-slate-200/60">
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
+                  id="btnZoomOut" title="축소">−</button>
+                <span class="text-[11px] font-semibold text-slate-500 min-w-[36px] text-center select-none"
+                  id="zoomLevel">100%</span>
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
+                  id="btnZoomIn" title="확대">+</button>
+                <button
+                  class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-[11px]"
+                  id="btnZoomReset" title="맞춤">⟲</button>
+              </div>
+              <button
+                class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
+                id="btnCopyResume">
+                <span class="action-icon w-3.5 h-3.5" id="iconCopy2"></span>
+                복사
+              </button>
+            </div>
           </div>
-          <div class="output-content" id="resumeContent" style="display:none;">
-            <div class="output-header flex items-center justify-between mb-3">
-              <h3 class="text-base font-bold text-slate-800">이력서</h3>
+          <p class="edit-hint text-[10px] text-slate-400 mb-2">더블클릭하여 내용을 수정할 수 있습니다</p>
+          <div class="output-body" id="resumeText" contenteditable="false"></div>
+        </div>
+      </div>
+
+      <!-- Tab: 면접 예상질문 -->
+      <div class="tab-pane" id="tabInterview">
+        <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="interviewEmpty">
+          <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty3"></div>
+          <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
+          <p class="text-xs text-slate-400 mt-1">면접 예상질문과 모범답변도 함께 생성됩니다</p>
+        </div>
+        <div class="output-content" id="interviewContent" style="display:none;">
+          <div class="bg-white rounded-2xl p-6" style="box-shadow: var(--shadow-card);">
+            <div class="output-header flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-slate-800">면접 예상질문</h3>
               <div class="output-actions flex items-center gap-2">
-                <select id="resumeTheme"
-                  class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
-                  title="이력서 테마">
-                  <option value="classic">클래식</option>
-                  <option value="modern">모던</option>
-                  <option value="simple">심플</option>
-                </select>
-                <select id="resumeColor"
-                  class="h-8 px-2.5 text-xs font-medium border border-slate-200 rounded-lg bg-[#F7F8FA] focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all cursor-pointer"
-                  title="모던 색상" style="display:none;">
-                  <option value="#1565c0">블루</option>
-                  <option value="#047857">에메랄드</option>
-                  <option value="#7c3aed">퍼플</option>
-                  <option value="#c62828">레드</option>
-                  <option value="#1e3a5f">네이비</option>
-                  <option value="#374151">차콜</option>
-                </select>
-                <div class="flex items-center gap-0.5 bg-slate-100 rounded-xl px-1 py-0.5 border border-slate-200/60">
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
-                    id="btnZoomOut" title="축소">−</button>
-                  <span class="text-[11px] font-semibold text-slate-500 min-w-[36px] text-center select-none"
-                    id="zoomLevel">100%</span>
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-base font-semibold"
-                    id="btnZoomIn" title="확대">+</button>
-                  <button
-                    class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-600 hover:bg-white hover:shadow-sm transition-all text-[11px]"
-                    id="btnZoomReset" title="맞춤">⟲</button>
-                </div>
                 <button
                   class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
-                  id="btnCopyResume">
-                  <span class="action-icon w-3.5 h-3.5" id="iconCopy2"></span>
+                  id="btnCopyInterview">
+                  <span class="action-icon w-3.5 h-3.5" id="iconCopy3"></span>
                   복사
+                </button>
+                <button
+                  class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-xl hover:bg-teal-100 hover:border-teal-300 transition-all"
+                  id="btnRegenInterview">
+                  🔄 재생성
                 </button>
               </div>
             </div>
-            <p class="edit-hint text-[10px] text-slate-400 mb-2">더블클릭하여 내용을 수정할 수 있습니다</p>
-            <div class="output-body" id="resumeText" contenteditable="false"></div>
+            <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
+            <div class="output-body" id="interviewText" contenteditable="false"></div>
           </div>
         </div>
-
-        <!-- Tab: 면접 예상질문 -->
-        <div class="tab-pane" id="tabInterview">
-          <div class="output-empty flex flex-col items-center justify-center py-20 text-center" id="interviewEmpty">
-            <div class="empty-icon w-16 h-16 text-slate-300 mb-4" id="iconEmpty3"></div>
-            <p class="text-sm font-semibold text-slate-400">아직 생성된 내용이 없습니다</p>
-            <p class="text-xs text-slate-400 mt-1">면접 예상질문과 모범답변도 함께 생성됩니다</p>
-          </div>
-          <div class="output-content" id="interviewContent" style="display:none;">
-            <div class="bg-white rounded-2xl p-6" style="box-shadow: var(--shadow-card);">
-              <div class="output-header flex items-center justify-between mb-4">
-                <h3 class="text-base font-bold text-slate-800">면접 예상질문</h3>
-                <div class="output-actions flex items-center gap-2">
-                  <button
-                    class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-600 bg-[#F7F8FA] border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all"
-                    id="btnCopyInterview">
-                    <span class="action-icon w-3.5 h-3.5" id="iconCopy3"></span>
-                    복사
-                  </button>
-                  <button
-                    class="btn-action inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-xl hover:bg-teal-100 hover:border-teal-300 transition-all"
-                    id="btnRegenInterview">
-                    🔄 재생성
-                  </button>
-                </div>
-                <p class="edit-hint text-[10px] text-slate-400 mb-3">더블클릭하여 내용을 수정할 수 있습니다</p>
-                <div class="output-body" id="interviewText" contenteditable="false"></div>
-              </div>
-            </div>
-          </div>
+      </div>
     </section>
   </main>
 

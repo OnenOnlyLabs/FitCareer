@@ -692,11 +692,13 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
     }
 
     const combinedContent = sections.map((sec, i) => {
-        const pageBreak = i < sections.length - 1 ? 'page-break-after: always;' : '';
         if (sec.type === 'resume') {
-            return `<div style="${pageBreak} padding:0;">${sec.content}</div>`;
+            // Resume: ALWAYS starts on a new page, exactly 1 A4, NEVER breaks
+            return `<div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; padding:0; width:210mm; height:297mm; overflow:hidden;">${sec.content}</div>`;
         } else if (sec.type === 'coverLetter') {
-            return `<div style="${pageBreak} padding:20mm;">
+            // Cover letter: flows naturally, can span multiple pages
+            const needsBreakAfter = i < sections.length - 1;
+            return `<div style="${needsBreakAfter ? 'page-break-after: always;' : ''} padding:20mm;">
                 <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
                     <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
                 </div>
@@ -705,7 +707,8 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
                 </div>
             </div>`;
         } else if (sec.type === 'interview') {
-            return `<div style="${pageBreak} padding:20mm;">
+            // Interview: flows naturally, can span multiple pages
+            return `<div style="padding:20mm;">
                 <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
                     <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
                 </div>
@@ -714,7 +717,7 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
                 </div>
             </div>`;
         } else {
-            return `<div style="${pageBreak} padding:20mm;">
+            return `<div style="padding:20mm;">
                 <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
                     <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
                 </div>
@@ -745,14 +748,16 @@ body {
 .cl-text p { margin-bottom: 12px; }
 /* Resume A4 page */
 .resume-a4-page {
-    width: 210mm !important; min-height: 297mm !important; height: auto;
-    box-shadow: none !important; overflow: visible;
+    width: 210mm !important; height: 297mm !important;
+    box-shadow: none !important; overflow: hidden !important;
     transform: none !important; margin: 0 !important;
+    page-break-inside: avoid !important;
+    page-break-before: always !important;
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
 }
 .resume-a4-inner {
     display: flex !important; flex-direction: column !important;
-    min-height: 297mm !important; height: auto !important;
+    height: 297mm !important; overflow: hidden !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
 .resume-a4-page th, .resume-a4-page td {

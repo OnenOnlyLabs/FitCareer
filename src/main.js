@@ -497,13 +497,48 @@ const QUOTES = [
     { text: '"위대한 일은 작은 일들이\n모여 이루어진다"', author: '빈센트 반 고흐' },
     { text: '"성공은 매일 반복한\n작은 노력의 합이다"', author: '로버트 콜리어' },
     { text: '"지금 이 순간이\n가장 빠른 시작이다"', author: '중국 속담' },
-    { text: '"원숭이도 나무에서 떨어질 때가 있다.\n하지만 다시 올라간다 💪"', author: '한국 속담 (개량)' },
+    { text: '"원숭이도 나무에서 떨어질 때가 있다.\n하지만 다시 올라간다 💪"', author: '한국 속담' },
     { text: '"준비된 자에게\n기회는 찾아온다"', author: '루이 파스퇴르' },
     { text: '"당신의 가치는\n이력서 한 장에 담기지 않는다 ✨"', author: 'FitCareer' },
     { text: '"행동이 말보다\n크게 말한다"', author: '벤자민 프랭클린' },
     { text: '"노력 없이 얻어지는 것은\n아무것도 없다"', author: '호레이스' },
     { text: '"자신감은 성공의\n첫 번째 비밀이다"', author: '랄프 왈도 에머슨' },
     { text: '"인생에서 가장 큰 영광은\n넘어지지 않는 것이 아니라,\n넘어질 때마다 일어서는 것이다"', author: '넬슨 만델라' },
+    { text: '"할 수 있다고 생각하면\n이미 반은 온 것이다"', author: '시어도어 루스벨트' },
+    { text: '"오늘의 고생이\n내일의 자산이 된다"', author: '한국 속담' },
+    { text: '"포기하지 않는 한\n실패란 없다"', author: '엘버트 허버드' },
+    { text: '"작은 기회로부터\n위대한 업적이 시작된다"', author: '데모스테네스' },
+    { text: '"열정을 잃지 않고\n실패에서 실패로 걸어가는 것이\n성공이다"', author: '윈스턴 처칠' },
+    { text: '"미래는 현재\n무엇을 하느냐에 달려 있다"', author: '마하트마 간디' },
+    { text: '"남들이 할 수 없다고 말하는 것을\n해내는 것이 바로 성공이다"', author: '월터 배젓' },
+    { text: '"세상에서 가장 어려운 일은\n사람의 마음을 바꾸는 것이다.\n하지만 당신은 이미 시작했다"', author: 'FitCareer' },
+    { text: '"시작이 반이다"', author: '아리스토텔레스' },
+    { text: '"당신은 생각보다\n훨씬 강합니다 💪"', author: 'FitCareer' },
+    { text: '"배움에는 왕도가 없다"', author: '유클리드' },
+    { text: '"오늘 심은 씨앗이\n내일의 꽃이 된다 🌱"', author: '중국 속담' },
+    { text: '"1%의 가능성,\n그것이 나의 길이다"', author: '나폴레옹 보나파르트' },
+    { text: '"어떤 직업이든\n진심을 담으면 빛난다 ✨"', author: 'FitCareer' },
+    { text: '"창의성은\n즐기는 것에서 나온다"', author: '알베르트 아인슈타인' },
+    { text: '"매일 조금씩 나아가면\n어느새 멀리 와 있다"', author: 'FitCareer' },
+    { text: '"용기란 두려움이 없는 것이 아니라\n두려움에도 불구하고 행동하는 것이다"', author: '마크 트웨인' },
+    { text: '"좋은 습관은\n성공의 열쇠다"', author: '아리스토텔레스' },
+    { text: '"나는 할 수 있다,\n반드시 해낸다"', author: '무하마드 알리' },
+    { text: '"모든 전문가는\n한때 초보자였다 🎯"', author: '헬렌 헤이스' },
+    { text: '"가장 어둡기 직전이\n새벽이다"', author: '영국 속담' },
+    { text: '"오늘도 누군가는\n당신을 기다리고 있다"', author: 'FitCareer' },
+    { text: '"끝까지 가보지 않으면\n결과는 아무도 모른다"', author: '한국 속담' },
+    { text: '"스스로를 믿는 것이\n첫 번째 성공이다"', author: 'FitCareer' },
+    { text: '"천재란 1%의 영감과\n99%의 노력이다"', author: '토마스 에디슨' },
+    { text: '"오늘의 도전이\n내일의 이야기가 된다 📖"', author: 'FitCareer' },
+    { text: '"단 한 번의 면접이\n인생을 바꿀 수 있다"', author: 'FitCareer' },
+    { text: '"문이 닫히면\n창문이 열린다"', author: '줄리 앤드류스' },
+    { text: '"포기란 단어는\n나의 사전에 없다"', author: '나폴레옹 보나파르트' },
+    { text: '"하루하루가\n새로운 기회다 🌅"', author: 'FitCareer' },
+    { text: '"어제의 나보다\n나은 오늘의 내가 되자"', author: 'FitCareer' },
+    { text: '"겸손은 모든 덕의\n어머니이다"', author: '토마스 풀러' },
+    { text: '"합격의 기쁨은\n준비의 고통을 잊게 한다 🎉"', author: 'FitCareer' },
+    { text: '"인내는 쓰지만\n그 열매는 달다"', author: '장 자크 루소' },
+    { text: '"당신의 이야기는\n지금 시작이다"', author: 'FitCareer' },
 ];
 
 let quoteInterval = null;
@@ -831,11 +866,11 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
         } else if (sec.type === 'coverLetter') {
             // Cover letter: flows naturally, can span multiple pages
             const needsBreakAfter = i < sections.length - 1;
-            return `<div style="${needsBreakAfter ? 'page-break-after: always;' : ''} padding:20mm;">
-                <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
-                    <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
+            return `<div style="${needsBreakAfter ? 'page-break-after: always;' : ''} padding:15mm 18mm;">
+                <div style="border-bottom:2px solid #14B8A6; padding-bottom:8px; margin-bottom:14px;">
+                    <h1 style="font-size:20px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
                 </div>
-                <div style="font-size:14px; line-height:1.85; color:#1A1D26;">
+                <div style="font-size:13px; line-height:1.6; color:#1A1D26;">
                     ${$('#coverLetterText').innerHTML}
                 </div>
             </div>`;
@@ -873,16 +908,15 @@ body {
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
 }
-/* Cover letter section styling */
-.cl-section { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
-.cl-section:last-child { border-bottom: none; }
-.cl-title { font-weight: 700; color: #115E59; font-size: 15px; margin-bottom: 10px; padding-bottom: 4px; border-bottom: 1px solid #E2E8F0; }
-.cl-text { font-size: 14px; line-height: 1.85; color: #1A1D26; }
-.cl-text p { margin-bottom: 12px; }
+/* Cover letter section styling — compact for 1 page */
+.cl-section { margin-bottom: 8px; padding-bottom: 0; border-bottom: none; }
+.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 4px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; border-bottom: none; }
+.cl-text { font-size: 13px; line-height: 1.55; color: #1A1D26; }
+.cl-text p { margin-bottom: 2px; }
 /* Resume A4 page */
 .resume-a4-page {
-    width: 210mm !important; height: 297mm !important;
-    box-shadow: none !important; overflow: hidden !important;
+    width: 210mm !important; min-height: 297mm !important;
+    box-shadow: none !important; overflow: visible !important;
     transform: none !important; margin: 0 !important;
     page-break-inside: avoid !important;
     page-break-before: always !important;
@@ -890,7 +924,7 @@ body {
 }
 .resume-a4-inner {
     display: flex !important; flex-direction: column !important;
-    height: 297mm !important; overflow: hidden !important;
+    min-height: 297mm !important; overflow: visible !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
 .resume-a4-page th, .resume-a4-page td {
@@ -1431,10 +1465,10 @@ function renderResume(data, theme = 'classic', photo = null) {
         </div>`;
 
         html = `<div class="resume-a4-wrap">
-<div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
-<div class="resume-a4-inner" style="display:flex;flex-direction:row;width:100%;height:100%;">
+<div class="resume-a4-page" style="width:794px;min-height:1123px;padding:0;box-sizing:border-box;overflow:visible;">
+<div class="resume-a4-inner" style="display:flex;flex-direction:row;width:100%;min-height:1123px;">
     <!-- Sidebar -->
-    <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:hidden;">
+    <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:visible;">
         <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;display:block;margin:0 auto;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>
         <div style="font-size:18px;font-weight:800;text-align:center;margin:0 0 2px 0;color:#fff;">${d.name || ''}</div>
         <div style="text-align:center;font-size:10px;opacity:0.7;margin-bottom:2px;">${d.jobPosition || ''}</div>

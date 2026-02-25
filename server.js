@@ -864,6 +864,96 @@ ${coverLetter}
     }
 });
 
+// ===== Regenerate Single Content =====
+app.post('/api/regenerate', async (req, res) => {
+    try {
+        const { company, profile, format, apiKey, provider, model, regenerateType } = req.body;
+
+        if (!apiKey) return res.json({ error: 'API Key가 필요합니다.' });
+        if (!regenerateType) return res.json({ error: '재생성 타입이 필요합니다.' });
+
+        const companyDesc = buildCompanyDesc(company);
+        const profileDesc = buildProfileDesc(profile);
+        const jobPos = company.jobPosition || '지원 직무';
+
+        console.log(`\n[Regenerate] ${regenerateType} — ${company.name} / ${jobPos}`);
+
+        if (regenerateType === 'coverLetter') {
+            let coverLetterSystemPrompt = `당신은 대한민국 최고의 자기소개서 전문 컨설턴트입니다.
+이전과 다른 새로운 관점과 표현으로 자기소개서를 작성해주세요.
+
+=== 🚫 할루시네이션 금지 ===
+1. 지원자 프로필에 없는 경험을 절대 만들어내지 마세요
+2. 프로필에 없는 내용은 절대 추론하거나 꾸며내지 마세요
+
+=== 기업 맞춤 규칙 ===
+1. 반드시 "${company.name}"의 "${jobPos}" 직무에 맞춰 작성
+2. "${company.name}"으로 기업명을 직접 사용
+
+=== 자격증/수상 활용 ===
+- 직무 관련 자격증은 반드시 포함 (최소 1개)
+- 관련 없는 자격증은 생략 가능
+
+=== 문체 ===
+- 이전 생성과 다른 새로운 표현/구성/에피소드 활용
+- 마크다운 금지, 순수 텍스트
+
+=== 출력 형식 ===
+1. 지원동기 (200~400자)
+2. 관련 경험/역량 (300~500자)
+3. 기여할 수 있는 부분 (200~400자)
+4. 입사 후 포부 (150~300자)
+
+각 섹션 제목은 번호와 함께 독립 줄에 작성하세요.`;
+
+            const coverLetter = await callAI(
+                [{ role: 'system', content: coverLetterSystemPrompt },
+                { role: 'user', content: `=== 기업 정보 ===\n${companyDesc}\n\n=== 지원자 프로필 ===\n${profileDesc}\n\n이전과 다른 새로운 관점으로 ${company.name}의 ${jobPos} 직무 자기소개서를 작성해주세요.` }],
+                apiKey, provider, model, 3000
+            );
+
+            res.json({ coverLetter });
+
+        } else if (regenerateType === 'interview') {
+            const coverLetterText = req.body.currentCoverLetter || '';
+
+            const interviewPrompt = `=== 기업 정보 ===
+${companyDesc}
+
+=== 지원자 프로필 ===
+${profileDesc}
+
+이전과 완전히 다른 새로운 면접 예상질문 5개와 모범답변을 작성해주세요.
+${company.name}의 ${jobPos} 직무 면접관이 물어볼 수 있는 구체적이고 날카로운 질문을 만들어주세요.
+
+=== 출력 형식 (HTML) ===
+<div class="qa-block">
+  <div class="qa-question">Q1. 질문 내용</div>
+  <div class="qa-answer">답변 내용</div>
+</div>
+
+순수 HTML만 출력하세요.`;
+
+            let interview = await callAI(
+                [{ role: 'system', content: `${company.name}의 면접관 역할입니다. 이전과 다른 새로운 질문을 만들어주세요. 순수 HTML만 출력하세요.` },
+                { role: 'user', content: interviewPrompt }],
+                apiKey, provider, model, 2000
+            );
+
+            interview = interview.replace(/^```html?\s*/i, '').replace(/\s*```$/m, '').trim();
+
+            res.json({ interview });
+
+        } else {
+            res.json({ error: '알 수 없는 재생성 타입입니다.' });
+        }
+
+    } catch (err) {
+        console.error('Regenerate error:', err);
+        res.json({ error: err.message });
+    }
+});
+
 // ===== Health =====
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', version: '2.0', product: 'FitCareer' });

@@ -222,6 +222,7 @@ function saveProfile() {
         address: $('#userAddress').value,
         gender: $('#userGender').value,
         age: $('#userAge').value,
+        isManAge: $('#isManAge').checked,
         skills: skills,
         certifications: certifications,
         freeDescription: $('#freeDescription').value,
@@ -251,6 +252,7 @@ function loadProfile() {
     if (p.address) $('#userAddress').value = p.address;
     if (p.gender) $('#userGender').value = p.gender;
     if (p.age) $('#userAge').value = p.age;
+    if (p.isManAge) $('#isManAge').checked = p.isManAge;
     if (p.photo) {
         profilePhoto = p.photo;
         $('#photoImg').src = profilePhoto;
@@ -387,7 +389,8 @@ function collectData() {
             certifications: certifications,
             freeDescription: $('#freeDescription').value.trim(),
             gender: $('#userGender').value,
-            age: $('#userAge').value.trim()
+            age: $('#userAge').value.trim(),
+            isManAge: $('#isManAge').checked
         },
         format: {
             type: $('#outputFormat').value,
@@ -556,6 +559,12 @@ $('#btnGenerate').addEventListener('click', async () => {
                 if (userProfile.phone) currentResumeData.contact.phone = userProfile.phone;
                 if (userProfile.address) currentResumeData.contact.address = userProfile.address;
             }
+            if (userProfile.age) {
+                const ageLabel = userProfile.isManAge ? `만 ${userProfile.age}세` : `${userProfile.age}세`;
+                currentResumeData.genderAge = `${userProfile.gender || ''} / ${ageLabel}`;
+            } else if (userProfile.gender) {
+                currentResumeData.genderAge = userProfile.gender;
+            }
             // User education entries override AI education
             if (userProfile.educations?.length > 0) {
                 currentResumeData.education = userProfile.educations;
@@ -619,6 +628,42 @@ $('#btnCopyInterview').addEventListener('click', () => {
     const text = $('#interviewText').innerText;
     if (text) copyToClipboard(text);
 });
+
+// ===== Regenerate Buttons (Cover Letter & Interview) =====
+async function regenerateContent(type) {
+    if (!validateInputs()) return;
+    const data = collectData();
+    const btn = type === 'coverLetter' ? $('#btnRegenCover') : $('#btnRegenInterview');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner"></span> 생성 중...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/regenerate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...data, regenerateType: type })
+        });
+        const result = await res.json();
+        if (result.error) { showToast(result.error); return; }
+
+        if (type === 'coverLetter' && result.coverLetter) {
+            $('#coverLetterText').innerHTML = formatCoverLetter(result.coverLetter);
+            showToast('자기소개서가 재생성되었습니다');
+        } else if (type === 'interview' && result.interview) {
+            $('#interviewText').innerHTML = formatInterview(result.interview);
+            showToast('면접 예상질문이 재생성되었습니다');
+        }
+    } catch (e) {
+        showToast('재생성 실패: ' + e.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+$('#btnRegenCover').addEventListener('click', () => regenerateContent('coverLetter'));
+$('#btnRegenInterview').addEventListener('click', () => regenerateContent('interview'));
 
 // ===== Multi-Content Print/PDF =====
 $('#btnMultiPrint').addEventListener('click', () => {
@@ -1304,7 +1349,8 @@ function renderResume(data, theme = 'classic', photo = null) {
     <div style="width:210px;min-width:210px;background:${accent};color:#fff;padding:28px 16px 24px;box-sizing:border-box;display:flex;flex-direction:column;print-color-adjust:exact;-webkit-print-color-adjust:exact;overflow:hidden;">
         <div style="text-align:center;margin-bottom:12px;">${photo ? `<img src="${photo}" style="width:100px;height:130px;object-fit:cover;border:3px solid rgba(255,255,255,0.3);border-radius:6px;display:block;margin:0 auto;" />` : `<div style="width:100px;height:130px;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.25);font-size:11px;">사진</div>`}</div>
         <div style="font-size:18px;font-weight:800;text-align:center;margin:0 0 2px 0;color:#fff;">${d.name || ''}</div>
-        <div style="text-align:center;font-size:10px;opacity:0.7;margin-bottom:6px;">${d.jobPosition || ''}</div>
+        <div style="text-align:center;font-size:10px;opacity:0.7;margin-bottom:2px;">${d.jobPosition || ''}</div>
+        ${d.genderAge ? `<div style="text-align:center;font-size:9.5px;opacity:0.55;margin-bottom:6px;">${d.genderAge}</div>` : '<div style="margin-bottom:6px;"></div>'}
         ${sideSection('CONTACT', `
             ${contact.email ? `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">✉ ${contact.email}</div>` : ''}
             ${contact.phone ? `<div style="font-size:10px;margin:0;padding:0;line-height:1.4;">☎ ${contact.phone}</div>` : ''}
@@ -1344,6 +1390,7 @@ function renderResume(data, theme = 'classic', photo = null) {
     <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:18px;margin-bottom:0;">
         ${photo ? `<div style="margin-bottom:10px;"><img src="${photo}" style="width:90px;height:115px;object-fit:cover;border:1px solid #ddd;display:block;margin:0 auto;" /></div>` : ''}
         <h1 style="font-size:26px;font-weight:800;margin:0 0 4px 0;color:#111;letter-spacing:4px;">${d.name || ''}</h1>
+        ${d.genderAge ? `<div style="font-size:11px;color:#666;margin-bottom:2px;">${d.genderAge}</div>` : ''}
         <div style="font-size:12.5px;color:#555;margin-bottom:4px;">${d.jobPosition || ''}</div>
         <div style="font-size:11px;color:#888;">${[contact.email, contact.phone, contact.address].filter(Boolean).join(' ∣ ')}</div>
     </div>

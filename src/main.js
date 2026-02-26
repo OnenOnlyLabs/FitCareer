@@ -866,21 +866,21 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
         } else if (sec.type === 'coverLetter') {
             // Cover letter: flows naturally, can span multiple pages
             const needsBreakAfter = i < sections.length - 1;
-            return `<div class="print-section autofit-section" style="${needsBreakAfter ? 'page-break-after: always;' : ''} width:210mm; min-height:297mm; box-sizing:border-box; padding:15mm 18mm; display:flex; flex-direction:column; justify-content:center;">
+            return `<div class="print-section autofit-section" style="${needsBreakAfter ? 'page-break-after: always;' : ''} width:210mm; box-sizing:border-box; padding:15mm 18mm;">
                 <div style="border-bottom:2px solid #14B8A6; padding-bottom:8px; margin-bottom:14px;">
                     <h1 style="font-size:20px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
                 </div>
-                <div style="font-size:13.5px; line-height:1.65; color:#1A1D26; flex:1;">
+                <div style="font-size:13.5px; line-height:1.65; color:#1A1D26;">
                     ${$('#coverLetterText').innerHTML}
                 </div>
             </div>`;
         } else if (sec.type === 'interview') {
             // Interview: auto-fit to A4
-            return `<div class="print-section autofit-section" style="padding:15mm 18mm; width:210mm; min-height:297mm; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center;">
+            return `<div class="print-section autofit-section" style="padding:15mm 18mm; width:210mm; box-sizing:border-box;">
                 <div style="border-bottom:2px solid #14B8A6; padding-bottom:8px; margin-bottom:14px;">
                     <h1 style="font-size:20px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
                 </div>
-                <div style="font-size:13.5px; line-height:1.7; color:#1A1D26; flex:1;">
+                <div style="font-size:13.5px; line-height:1.7; color:#1A1D26;">
                     ${$('#interviewText').innerHTML}
                 </div>
             </div>`;
@@ -1516,7 +1516,7 @@ function renderResume(data, theme = 'classic', photo = null) {
             ? eduList.map(e => `<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:600;">${e.school || ''}</span><br><span style="font-size:10px;opacity:0.8;">${e.major || ''}</span><br><span style="font-size:9.5px;opacity:0.55;">${e.period || ''}</span></div>`).join('')
             : '<div style="font-size:10px;opacity:0.5;">-</div>';
         const expHtml = expList.length > 0
-            ? expList.map(e => `<div style="margin-bottom:8px;"><strong style="font-size:12.5px;">${e.company || ''}</strong><br><span style="font-size:11px;color:#555;">${e.role || ''}</span><br><span style="color:#888;font-size:10.5px;">${e.period || ''}</span></div>`).join('')
+            ? expList.map(e => `<div style="margin-bottom:6px;"><div style="display:flex;justify-content:space-between;align-items:baseline;"><strong style="font-size:12px;">${e.company || ''}</strong><span style="color:#888;font-size:10px;white-space:nowrap;margin-left:8px;">${e.period || ''}</span></div><span style="font-size:10.5px;color:#555;">${e.role || ''}</span></div>`).join('')
             : '<div style="color:#aaa;font-size:12px;">-</div>';
 
         const sideSection = (label, content) => `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.15);">
@@ -1550,7 +1550,7 @@ function renderResume(data, theme = 'classic', photo = null) {
         <div style="flex:1;"></div>
     </div>
     <!-- Main Content -->
-    <div style="flex:1;padding:28px 24px;display:flex;flex-direction:column;gap:0;overflow:hidden;">
+    <div style="flex:1;padding:28px 24px;display:flex;flex-direction:column;gap:0;">
         ${mainSection('경력사항', expHtml)}
         ${hasExp ? mainSection('경력상세', expDetailHtml) : ''}
         ${d.summary ? mainSection('자기소개', d.summary) : ''}

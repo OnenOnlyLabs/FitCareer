@@ -908,11 +908,12 @@ body {
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
 }
-/* Cover letter section styling — compact for 1 page */
-.cl-section { margin-bottom: 8px; padding-bottom: 0; border-bottom: none; }
-.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 4px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; border-bottom: none; }
-.cl-text { font-size: 13px; line-height: 1.55; color: #1A1D26; }
-.cl-text p { margin-bottom: 2px; }
+/* Cover letter section styling */
+.cl-section { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #E5E7EB; }
+.cl-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 6px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; border-bottom: none; }
+.cl-text { font-size: 13px; line-height: 1.6; color: #1A1D26; }
+.cl-text p { margin-bottom: 3px; }
 /* Resume A4 page */
 .resume-a4-page {
     width: 210mm !important; min-height: 297mm !important;
@@ -923,8 +924,9 @@ body {
     print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
 }
 .resume-a4-inner {
-    display: flex !important; flex-direction: column !important;
+    display: flex !important;
     min-height: 297mm !important; overflow: visible !important;
+    page-break-inside: avoid !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
 .resume-a4-page th, .resume-a4-page td {

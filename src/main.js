@@ -1295,6 +1295,49 @@ function applyZoom(scale) {
 }
 
 
+// ===== Build rich summary from profile data =====
+function buildRichSummary(d) {
+    if (d.summary && d.summary.length >= 50) return d.summary;
+
+    const parts = [];
+
+    // Use freeDescription as primary source
+    if (d.freeDescription && d.freeDescription.trim().length > 10) {
+        parts.push(d.freeDescription.trim());
+    }
+
+    // Add experience-based intro
+    if (d.experiences?.length > 0) {
+        const totalExp = d.experiences.length;
+        const latestExp = d.experiences[0];
+        const companyNames = d.experiences.map(e => e.company).filter(c => c).slice(0, 3).join(', ');
+        if (companyNames) {
+            parts.push(`${companyNames} 등에서 ${totalExp}개 이상의 경력을 보유하고 있습니다.`);
+        }
+    }
+
+    // Add skills
+    if (d.skills?.length > 0) {
+        const topSkills = d.skills.slice(0, 5).join(', ');
+        parts.push(`주요 역량으로 ${topSkills} 등의 전문성을 갖추고 있습니다.`);
+    }
+
+    // Add certifications
+    const certs = (d.certifications || []).filter(c => c);
+    if (certs.length > 0) {
+        parts.push(`${certs.slice(0, 3).join(', ')} 등 관련 자격을 보유하고 있습니다.`);
+    }
+
+    // Add strengths
+    const strengths = (d.strengths || []).filter(s => s);
+    if (strengths.length > 0) {
+        parts.push(`${strengths.slice(0, 3).join(', ')} 등의 강점이 있습니다.`);
+    }
+
+    if (parts.length === 0) return d.summary || '';
+    return parts.join(' ');
+}
+
 // ===== Render Resume from JSON Data (Korean A4 Form) =====
 function renderResume(data, theme = 'classic', photo = null) {
     if (data.raw) {
@@ -1302,6 +1345,8 @@ function renderResume(data, theme = 'classic', photo = null) {
     }
 
     const d = data;
+    // Enhance summary if too short
+    d.summary = buildRichSummary(d);
     const contact = d.contact || {};
     const hasExp = d.experiences?.length > 0;
     const hasSkills = d.skills?.length > 0;
@@ -1568,12 +1613,37 @@ function autoFitA4Content() {
     const pageH = 1123; // A4 height in px
     const pageW = 794;  // A4 width in px
 
-    // For Modern/Simple themes that use fixed A4 dimensions,
-    // just ensure the page is properly sized and let CSS flex handle distribution
+    // Reset any previous scaling
     page.style.width = `${pageW}px`;
-    page.style.height = `${pageH}px`;
-    inner.style.height = '100%';
     inner.style.transform = 'none';
+    inner.style.transformOrigin = 'top left';
+
+    // Temporarily remove height constraints to measure true content height
+    const origPageH = page.style.height;
+    const origPageOF = page.style.overflow;
+    const origInnerH = inner.style.height;
+    page.style.height = 'auto';
+    page.style.overflow = 'visible';
+    inner.style.height = 'auto';
+
+    // Measure actual content height
+    const contentH = inner.scrollHeight;
+
+    if (contentH > pageH) {
+        // Content overflows — scale down to fit
+        const scale = Math.max(pageH / contentH, 0.45); // minimum 45%
+        inner.style.transform = `scale(${scale})`;
+        inner.style.transformOrigin = 'top left';
+        inner.style.width = `${pageW / scale}px`;
+        inner.style.height = `${pageH / scale}px`;
+        page.style.height = `${pageH}px`;
+        page.style.overflow = 'hidden';
+    } else {
+        // Content fits — restore fixed dimensions
+        page.style.height = origPageH || `${pageH}px`;
+        page.style.overflow = origPageOF || 'hidden';
+        inner.style.height = origInnerH || '100%';
+    }
 }
 
 // ===== Scale A4 page to fit preview panel =====

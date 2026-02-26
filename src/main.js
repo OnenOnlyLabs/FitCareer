@@ -909,15 +909,15 @@ body {
     -webkit-print-color-adjust: exact !important;
 }
 /* Cover letter section styling */
-.cl-section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #E5E7EB; }
+.cl-section { margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid #E5E7EB; }
 .cl-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 6px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; }
-.cl-text { font-size: 13px; line-height: 1.65; color: #1A1D26; }
-.cl-text p { margin-bottom: 4px; }
+.cl-title { font-weight: 700; color: #115E59; font-size: 14px; margin-bottom: 8px; padding: 5px 10px; background: #f0fdf4; border-left: 3px solid #0d9488; }
+.cl-text { font-size: 13.5px; line-height: 1.75; color: #1A1D26; }
+.cl-text p { margin-bottom: 6px; }
 /* Resume A4 page */
 .resume-a4-page {
     width: 210mm !important; min-height: 297mm !important;
-    box-shadow: none !important; overflow: visible !important;
+    box-shadow: none !important;
     transform: none !important; margin: 0 !important;
     page-break-inside: avoid !important;
     page-break-before: always !important;
@@ -925,7 +925,7 @@ body {
 }
 .resume-a4-inner {
     display: flex !important;
-    min-height: 297mm !important; overflow: visible !important;
+    min-height: 297mm !important;
     page-break-inside: avoid !important;
 }
 .resume-a4-page table { border-collapse: collapse; width: 100%; }
@@ -959,12 +959,12 @@ window.addEventListener('load', function() {
     document.querySelectorAll('.autofit-section').forEach(function(sec) {
         var contentH = sec.scrollHeight;
         var pageH = 297 * 3.7795; // 297mm in px (~1123px)
-        if (contentH > 0 && contentH < pageH * 0.85) {
-            // Content is too small, scale up to fill page
-            var scale = Math.min(pageH / contentH, 1.4);
+        if (contentH > 0 && contentH < pageH * 0.98) {
+            // Content doesn't fill the page, scale up to fill
+            var scale = Math.min(pageH / contentH, 1.5);
             sec.style.transform = 'scale(' + scale + ')';
             sec.style.transformOrigin = 'top center';
-            sec.style.height = (pageH / scale) + 'px';
+            sec.style.minHeight = pageH + 'px';
         }
     });
 });

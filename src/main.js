@@ -862,7 +862,7 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
     const combinedContent = sections.map((sec, i) => {
         if (sec.type === 'resume') {
             // Resume: ALWAYS starts on a new page, uses its own built-in A4 layout
-            return `<div class="print-section resume-section" style="page-break-before: always; page-break-after: always; page-break-inside: avoid; padding:0; width:210mm; min-height:297mm;">${sec.content}</div>`;
+            return `<div class="print-section resume-section" style="page-break-before: always; page-break-inside: avoid; padding:0; width:210mm;">${sec.content}</div>`;
         } else if (sec.type === 'coverLetter') {
             // Cover letter: flows naturally, can span multiple pages
             const needsBreakAfter = i < sections.length - 1;
@@ -953,22 +953,6 @@ body {
 /* Modern resume sidebar full-height */
 .resume-a4-inner { overflow: visible !important; }
 </style>
-<script>
-window.addEventListener('load', function() {
-    // Auto-fit cover letter and interview sections to A4
-    document.querySelectorAll('.autofit-section').forEach(function(sec) {
-        var contentH = sec.scrollHeight;
-        var pageH = 297 * 3.7795; // 297mm in px (~1123px)
-        if (contentH > 0 && contentH < pageH * 0.98) {
-            // Content doesn't fill the page, scale up to fill
-            var scale = Math.min(pageH / contentH, 1.5);
-            sec.style.transform = 'scale(' + scale + ')';
-            sec.style.transformOrigin = 'top center';
-            sec.style.minHeight = pageH + 'px';
-        }
-    });
-});
-</script>
 </head><body>${combinedContent}</body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 500);
@@ -1573,21 +1557,24 @@ function renderResume(data, theme = 'classic', photo = null) {
 
         html = `<div class="resume-a4-wrap">
 <div class="resume-a4-page" style="width:794px;height:1123px;padding:0;box-sizing:border-box;overflow:hidden;">
-<div class="resume-a4-inner" style="display:flex;flex-direction:column;height:100%;padding:36px 40px;box-sizing:border-box;">
-    <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:18px;margin-bottom:0;">
-        ${photo ? `<div style="margin-bottom:10px;"><img src="${photo}" style="width:90px;height:115px;object-fit:cover;border:1px solid #ddd;display:block;margin:0 auto;" /></div>` : ''}
-        <h1 style="font-size:26px;font-weight:800;margin:0 0 4px 0;color:#111;letter-spacing:4px;">${d.name || ''}</h1>
-        ${d.genderAge ? `<div style="font-size:11px;color:#666;margin-bottom:2px;">${d.genderAge}</div>` : ''}
-        <div style="font-size:12.5px;color:#555;margin-bottom:4px;">${d.jobPosition || ''}</div>
-        <div style="font-size:11px;color:#888;">${[contact.email, contact.phone, contact.address].filter(Boolean).join(' ∣ ')}</div>
+<div class="resume-a4-inner" style="display:flex;flex-direction:column;height:100%;padding:30px 36px;box-sizing:border-box;">
+    <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:14px;margin-bottom:0;">
+        ${photo ? `<div style="margin-bottom:8px;"><img src="${photo}" style="width:80px;height:105px;object-fit:cover;border:1px solid #ddd;display:block;margin:0 auto;" /></div>` : ''}
+        <h1 style="font-size:24px;font-weight:800;margin:0 0 3px 0;color:#111;letter-spacing:3px;">${d.name || ''}</h1>
+        ${d.genderAge ? `<div style="font-size:10.5px;color:#666;margin-bottom:2px;">${d.genderAge}</div>` : ''}
+        <div style="font-size:11.5px;color:#555;margin-bottom:3px;">${d.jobPosition || ''}</div>
+        <div style="font-size:10.5px;color:#888;">${[contact.email, contact.phone, contact.address].filter(Boolean).join(' ∣ ')}</div>
     </div>
-    <div style="flex:1;padding-top:16px;min-height:0;">${sectionTitle('학력사항')}${eduHtml}</div>
-    <div style="flex:1;min-height:0;">${sectionTitle('경력사항')}${expHtml}</div>
-    <div style="flex:1;min-height:0;">${sectionTitle('보유스킬')}<div style="font-size:12.5px;line-height:1.7;">${skillText}</div></div>
-    <div style="flex:1;min-height:0;">${sectionTitle('자격/면허')}<div style="font-size:12.5px;line-height:1.7;">${certText}</div></div>
-    ${hasExp ? `<div style="flex:1;min-height:0;">${sectionTitle('경력상세')}<div style="font-size:12.5px;line-height:1.7;">${expDetailHtml}</div></div>` : ''}
-    ${d.summary ? `<div style="flex:1;min-height:0;">${sectionTitle('자기소개')}<div style="font-size:12.5px;line-height:1.7;">${d.summary}</div></div>` : ''}
-    <div style="flex:1;min-height:0;">${sectionTitle('특기사항')}<div style="font-size:12.5px;line-height:1.7;">${strengthsHtml}</div></div>
+    <!-- 학력+경력 가로 배치 -->
+    <div style="display:flex;gap:20px;padding-top:12px;">
+        <div style="flex:1;min-width:0;">${sectionTitle('학력사항')}${eduHtml}</div>
+        <div style="flex:1;min-width:0;">${sectionTitle('경력사항')}${expHtml}</div>
+    </div>
+    <div style="margin-top:8px;">${sectionTitle('보유스킬')}<div style="font-size:11.5px;line-height:1.6;">${skillText}</div></div>
+    <div style="margin-top:8px;">${sectionTitle('자격/면허')}<div style="font-size:11.5px;line-height:1.6;">${certText}</div></div>
+    ${hasExp ? `<div style="margin-top:8px;">${sectionTitle('경력상세')}<div style="font-size:11.5px;line-height:1.6;">${expDetailHtml}</div></div>` : ''}
+    ${d.summary ? `<div style="margin-top:8px;">${sectionTitle('자기소개')}<div style="font-size:11.5px;line-height:1.6;">${d.summary}</div></div>` : ''}
+    <div style="margin-top:8px;flex:1;">${sectionTitle('특기사항')}<div style="font-size:11.5px;line-height:1.6;">${strengthsHtml}</div></div>
 </div>
 </div>
 </div>`;

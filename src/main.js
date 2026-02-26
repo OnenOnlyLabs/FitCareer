@@ -861,26 +861,26 @@ function downloadMultiPdf({ includeCover, includeResume, includeInterview }) {
 
     const combinedContent = sections.map((sec, i) => {
         if (sec.type === 'resume') {
-            // Resume: ALWAYS starts on a new page, exactly 1 A4, NEVER breaks
-            return `<div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; padding:0; width:210mm; height:297mm; overflow:hidden;">${sec.content}</div>`;
+            // Resume: ALWAYS starts on a new page, uses its own built-in A4 layout
+            return `<div class="print-section resume-section" style="page-break-before: always; page-break-after: always; page-break-inside: avoid; padding:0; width:210mm; min-height:297mm;">${sec.content}</div>`;
         } else if (sec.type === 'coverLetter') {
             // Cover letter: flows naturally, can span multiple pages
             const needsBreakAfter = i < sections.length - 1;
-            return `<div style="${needsBreakAfter ? 'page-break-after: always;' : ''} padding:15mm 18mm;">
+            return `<div class="print-section autofit-section" style="${needsBreakAfter ? 'page-break-after: always;' : ''} width:210mm; min-height:297mm; box-sizing:border-box; padding:15mm 18mm; display:flex; flex-direction:column; justify-content:center;">
                 <div style="border-bottom:2px solid #14B8A6; padding-bottom:8px; margin-bottom:14px;">
                     <h1 style="font-size:20px; font-weight:800; color:#115E59; margin:0;">자기소개서</h1>
                 </div>
-                <div style="font-size:13px; line-height:1.6; color:#1A1D26;">
+                <div style="font-size:13.5px; line-height:1.65; color:#1A1D26; flex:1;">
                     ${$('#coverLetterText').innerHTML}
                 </div>
             </div>`;
         } else if (sec.type === 'interview') {
-            // Interview: flows naturally, can span multiple pages
-            return `<div style="padding:20mm;">
-                <div style="border-bottom:3px solid #14B8A6; padding-bottom:12px; margin-bottom:24px;">
-                    <h1 style="font-size:22px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
+            // Interview: auto-fit to A4
+            return `<div class="print-section autofit-section" style="padding:15mm 18mm; width:210mm; min-height:297mm; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center;">
+                <div style="border-bottom:2px solid #14B8A6; padding-bottom:8px; margin-bottom:14px;">
+                    <h1 style="font-size:20px; font-weight:800; color:#115E59; margin:0;">${sec.title}</h1>
                 </div>
-                <div style="font-size:14px; line-height:1.7; color:#1A1D26;">
+                <div style="font-size:13.5px; line-height:1.7; color:#1A1D26; flex:1;">
                     ${$('#interviewText').innerHTML}
                 </div>
             </div>`;
@@ -948,7 +948,25 @@ body {
 .qa-answer p { margin-bottom: 6px; }
 /* Output header — hide in print */
 .output-header, .output-actions, .edit-hint, .btn-action { display: none !important; }
+/* Modern resume sidebar full-height */
+.resume-a4-inner { overflow: visible !important; }
 </style>
+<script>
+window.addEventListener('load', function() {
+    // Auto-fit cover letter and interview sections to A4
+    document.querySelectorAll('.autofit-section').forEach(function(sec) {
+        var contentH = sec.scrollHeight;
+        var pageH = 297 * 3.7795; // 297mm in px (~1123px)
+        if (contentH > 0 && contentH < pageH * 0.85) {
+            // Content is too small, scale up to fill page
+            var scale = Math.min(pageH / contentH, 1.4);
+            sec.style.transform = 'scale(' + scale + ')';
+            sec.style.transformOrigin = 'top center';
+            sec.style.height = (pageH / scale) + 'px';
+        }
+    });
+});
+</script>
 </head><body>${combinedContent}</body></html>`);
     printWindow.document.close();
     setTimeout(() => { printWindow.print(); }, 500);
@@ -1391,7 +1409,7 @@ function renderResume(data, theme = 'classic', photo = null) {
                 </td>
                 <th style="${thStyle}width:80px;">성 명</th>
                 <td style="${tdStyle}font-size:15px;font-weight:700;">${d.name || ''}</td>
-                <td style="${tdStyle}text-align:center;width:140px;">${d.gender ? `${d.gender}${d.age ? ` / ${d.age}세` : ''}` : (d.age ? `${d.age}세` : '')}</td>
+                <td style="${tdStyle}text-align:center;width:140px;">${d.genderAge || (d.gender ? `${d.gender}${d.age ? ` / ${d.age}세` : ''}` : (d.age ? `${d.age}세` : ''))}</td>
             </tr>
             <tr>
                 <th style="${thStyle}">이메일</th>

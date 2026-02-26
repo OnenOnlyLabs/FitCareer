@@ -909,11 +909,11 @@ body {
     -webkit-print-color-adjust: exact !important;
 }
 /* Cover letter section styling */
-.cl-section { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #E5E7EB; }
+.cl-section { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #E5E7EB; }
 .cl-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 6px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; border-bottom: none; }
-.cl-text { font-size: 13px; line-height: 1.6; color: #1A1D26; }
-.cl-text p { margin-bottom: 3px; }
+.cl-title { font-weight: 700; color: #115E59; font-size: 13px; margin-bottom: 6px; padding: 4px 8px; background: #f0fdf4; border-left: 3px solid #0d9488; }
+.cl-text { font-size: 13px; line-height: 1.65; color: #1A1D26; }
+.cl-text p { margin-bottom: 4px; }
 /* Resume A4 page */
 .resume-a4-page {
     width: 210mm !important; min-height: 297mm !important;
@@ -1397,8 +1397,8 @@ function renderResume(data, theme = 'classic', photo = null) {
             : '<span style="color:#aaa;font-size:11px;">-</span>';
 
         html = `<div class="resume-a4-wrap">
-<div class="resume-a4-page">
-<div class="resume-a4-inner">
+<div class="resume-a4-page" style="width:794px;height:1123px;overflow:hidden;page-break-inside:avoid;">
+<div class="resume-a4-inner" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
     <!-- 상단 인적사항 영역 -->
     <div style="padding:36px 36px 0 36px;flex-shrink:0;">
         <!-- 인적사항 테이블 -->
